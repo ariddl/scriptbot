@@ -1,0 +1,2 @@
+# scriptbot
+Discord Script Bot
