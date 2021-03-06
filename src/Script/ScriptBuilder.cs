@@ -62,7 +62,10 @@ namespace DiscordScriptBot.Script
 
         public Script Build()
         {
-            Assert(_nodeStack.Count == 1, "Build", "stack is not at root!");
+            Assert(_nodeStack.Count > 0, "Build", "already built!");
+            while (_nodeStack.Count > 1)
+                _nodeStack.Pop();
+
             var script = new Script(_name, _description, _nodeStack.Peek());
             _nodeStack.Clear();
             return script;
