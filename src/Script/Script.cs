@@ -28,20 +28,18 @@ namespace DiscordScriptBot.Script
             public void Run() => _actions.ForEach(a => a.Run());
         }
 
-        private string _name;
-        private string _description;
+        public string Name { get; }
+        public string Description { get; }
+
         private IScriptNode _tree;
 
         public Script(string name, string description, IScriptNode tree)
         {
-            _name = name;
-            _description = description;
+            Name = name;
+            Description = description;
             _tree = tree;
         }
 
         public void Run() => _tree.Run();
-
-        public string Name => _name;
-        public string Description => _description;
     }
 }
