@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using DiscordScriptBot.Event;
-using DiscordScriptBot.Expression;
 
 namespace DiscordScriptBot
 {
@@ -22,12 +21,8 @@ namespace DiscordScriptBot
             _dispatcher = new EventDispatcher(_client);
 
             // Temp test stuff
-            var e = new InfixExpression(new WrappedEvaluable(() => true));
-            e.And(new WrappedEvaluable(() => false))
-             .Or(new WrappedEvaluable(() => true))
-             .And(new WrappedEvaluable(() => true))
-             .Xor(new WrappedEvaluable(() => false));
-            Console.WriteLine($"Expr test: {e} -> {e.Evaluate()}");
+            Expression.Test.RunTests();
+            Script.Test.RunTests();
         }
 
         private Task Log(LogMessage arg)
