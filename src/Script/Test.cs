@@ -7,7 +7,7 @@ namespace DiscordScriptBot.Script
     {
         private static void BuildTest(bool a, bool b)
         {
-            var builder = new ScriptBuilder("test script", "this is a test script");
+            var builder = new ScriptBuilder("test script", $"a: {a} b: {b}");
 
             // main script body
             builder.Action(() => Console.WriteLine("script body"));
@@ -42,9 +42,27 @@ namespace DiscordScriptBot.Script
             // back inside main script body
             builder.Action(() => Console.WriteLine("Everything done"));
 
-            var script = builder.Build();
-            script.Run();
+            RunScript(builder.Build());
+        }
 
+        private static void BuildTest_NoPop()
+        {
+            var builder = new ScriptBuilder("no pop", "build w/o popping stack");
+
+            for (int i = 0; i < 5; ++i)
+            {
+                builder.Condition(IEvaluable.Wrap(() => true));
+                builder.ConditionPassed();
+            }
+
+            builder.Action(() => Console.WriteLine("Inner-most body"));
+            RunScript(builder.Build());
+        }
+
+        private static void RunScript(Script script)
+        {
+            Console.WriteLine($"Running script '{script.Name}' ({script.Description})");
+            script.Run();
             Console.WriteLine("=============");
         }
 
@@ -53,6 +71,7 @@ namespace DiscordScriptBot.Script
             BuildTest(true, true);
             BuildTest(true, false);
             BuildTest(false, false);
+            BuildTest_NoPop();
         }
     }
 }
