@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Diagnostics;
 
 namespace DiscordScriptBot.Expression
 {
@@ -25,8 +26,7 @@ namespace DiscordScriptBot.Expression
 
         private LogicalInfixExpression Connect(IEvaluable next, IOperator connector)
         {
-            if (_next != null)
-                throw new Exception("Expression already has a connecting expression!");
+            Debug.Assert(_next == null, "Expression already has a connecting expression!");
             var expr = new LogicalInfixExpression(next);
             _next = expr;
             _connector = connector;

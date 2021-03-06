@@ -1,7 +1,6 @@
 ﻿using DiscordScriptBot.Expression;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace DiscordScriptBot.Script
 {
@@ -49,7 +48,7 @@ namespace DiscordScriptBot.Script
 
         public void Pop()
         {
-            Debug.Assert(_nodeStack.Count > 1, "ScriptBuilder.Pop() cannot pop root node!");
+            Assert(_nodeStack.Count > 1, "Pop", "cannot pop root node!");
             _nodeStack.Pop();
         }
 
