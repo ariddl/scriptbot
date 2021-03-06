@@ -3,13 +3,13 @@ using System.Text;
 
 namespace DiscordScriptBot.Expression
 {
-    public class InfixExpression : IEvaluable
+    public class LogicalInfixExpression : IEvaluable
     {
         private IEvaluable _condition;
         private IOperator _connector;
-        private InfixExpression _next;
+        private LogicalInfixExpression _next;
 
-        public InfixExpression(IEvaluable cond)
+        public LogicalInfixExpression(IEvaluable cond)
         {
             _condition = cond;
             _connector = null;
@@ -19,15 +19,15 @@ namespace DiscordScriptBot.Expression
         public bool Evaluate() => _next != null ? 
             _connector.Evaluate(_condition, _next) : _condition.Evaluate();
 
-        public InfixExpression And(IEvaluable e) => Connect(e, new And()); // todo: operator factory thing
-        public InfixExpression Or(IEvaluable e) => Connect(e, new Or());
-        public InfixExpression Xor(IEvaluable e) => Connect(e, new Xor());
+        public LogicalInfixExpression And(IEvaluable e) => Connect(e, AndOp.Instance);
+        public LogicalInfixExpression Or(IEvaluable e) => Connect(e, OrOp.Instance);
+        public LogicalInfixExpression Xor(IEvaluable e) => Connect(e, XorOp.Instance);
 
-        private InfixExpression Connect(IEvaluable next, IOperator connector)
+        private LogicalInfixExpression Connect(IEvaluable next, IOperator connector)
         {
             if (_next != null)
                 throw new Exception("Expression already has a connecting expression!");
-            var expr = new InfixExpression(next);
+            var expr = new LogicalInfixExpression(next);
             _next = expr;
             _connector = connector;
             return expr;
