@@ -110,10 +110,18 @@ namespace DiscordScriptBot.Script
         private void AddScript(ScriptDefinition script)
         {
             Debug.Assert(!_scriptDefs.ContainsKey(script.Name));
+
+            // Subscribe the script to its requested event trigger.
+            // If this fails, it means the requested event is invalid/unsupported.
             if (!_dispatcher.SubscribeScript(script.EventTrigger, script.Name))
                 Console.WriteLine($"Failed to SubscribeScript on dispatcher: {script.EventTrigger}");
-            _scriptDefs.Add(script.Name, script);
-            _executor.AddScript(script, script.Tree);
+
+            // Compile the script, and if that succeeds, add the script.
+            // Otherwise revert and remove the script from the dispatcher.
+            if (_executor.AddScript(script, script.Tree))
+                _scriptDefs.Add(script.Name, script);
+            else
+                _dispatcher.UnsubscribeScript(script.EventTrigger, script.Name);
         }
 
         public void RemoveScript(string name)

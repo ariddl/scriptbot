@@ -44,18 +44,20 @@ namespace DiscordScriptBot.Script
                 _tasks.Add(RunTask());
         }
 
-        public void AddScript(IScriptMeta meta, IExpression tree)
+        public bool AddScript(IScriptMeta meta, IExpression tree)
         {
-            _scriptPool.Add(meta.Name, new Queue<CompiledScript>());
             for (int i = 0; i < _config.ScriptPoolSize; ++i)
             {
                 var compiled = CompileScript(tree, meta);
-                if (compiled != null)
-                    _scriptPool[meta.Name].Enqueue(compiled);
-                else
-                    return;
+                if (compiled == null)
+                    return false;
+
+                if (!_scriptPool.ContainsKey(meta.Name))
+                    _scriptPool.Add(meta.Name, new Queue<CompiledScript>());
+                _scriptPool[meta.Name].Enqueue(compiled);
             }
             Console.WriteLine($"Compiled script: {meta.Name}");
+            return true;
         }
 
         public void RemoveScript(string name)
@@ -85,12 +87,11 @@ namespace DiscordScriptBot.Script
                 return null;
             }
 
-            var compiled = new CompiledScript
+            return new CompiledScript
             {
                 CompiledFunc = Expression.Lambda<Func<bool>>(body).Compile(),
                 ExecContext = ctx.ExecContext
             };
-            return compiled;
         }
 
         public void EnqueueExecute(string script, params object[] @params)
