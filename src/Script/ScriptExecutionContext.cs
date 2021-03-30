@@ -17,7 +17,6 @@ namespace DiscordScriptBot.Script
         }
 
         public void Init(params object[] @params) => _event.Init(@params);
-
         public object GetParam(string name) => _event.GetParam(name);
 
         public void EnqueueTask(Func<Task> t) => _taskQueue.Enqueue(t);

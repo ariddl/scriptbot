@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DiscordScriptBot.Script
 {
-    public class InterfaceManager
+    public class ScriptInterface
     {
         public sealed class FunctionInfo
         {
@@ -40,7 +40,7 @@ namespace DiscordScriptBot.Script
         private Dictionary<string, WrapperInfo> _wrappers;
         private Dictionary<string, WrapperInfo> _events;
 
-        public InterfaceManager()
+        public ScriptInterface()
         {
             _wrappers = new Dictionary<string, WrapperInfo>();
             _events = new Dictionary<string, WrapperInfo>();

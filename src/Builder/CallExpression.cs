@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using static DiscordScriptBot.Script.InterfaceManager;
+using static DiscordScriptBot.Script.ScriptInterface;
 
 namespace DiscordScriptBot.Builder
 {

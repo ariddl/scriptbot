@@ -17,13 +17,13 @@ namespace DiscordScriptBot.Script
         {
             string Name { get; }
             string Description { get; }
-            string Guild { get; set; } // TODO
+            string Guild { get; } // TODO
             string EventTrigger { get; }
             string Author { get; }
             DateTime CreationDate { get; }
         }
 
-        public class ScriptDefinition : IScriptMeta
+        private class ScriptDefinition : IScriptMeta
         {
             // Metadata
             public string Name { get; set; }
@@ -74,20 +74,22 @@ namespace DiscordScriptBot.Script
                 var deserializer = GetSerializerBuilder<DeserializerBuilder>().Build();
                 foreach (string file in Directory.GetFiles(config.ScriptsDir))
                 {
-                    string content = File.ReadAllText(file);
-
+                    ScriptDefinition script;
                     try
                     {
-                        var script = deserializer.Deserialize<ScriptDefinition>(content);
+                        string content = File.ReadAllText(file);
+                        script = deserializer.Deserialize<ScriptDefinition>(content);
                         if (script.EventTrigger.Length == 0)
                             throw new Exception("Empty event trigger"); // call exception handler below
-                        Console.WriteLine($"Loaded script: {script.Name}");
-                        AddScript(script);
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine($"Failed to load script {Path.GetFileName(file)}: {e.Message}");
+                        continue;
                     }
+
+                    Console.WriteLine($"Loaded script: {script.Name}");
+                    AddScript(script);
                 }
             }
         }

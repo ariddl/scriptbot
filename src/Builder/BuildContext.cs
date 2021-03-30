@@ -12,7 +12,7 @@ namespace DiscordScriptBot.Builder
     {
         public DiscordSocketClient Discord { get; set; }
         public SocketGuild Guild { get; set; }
-        public InterfaceManager Interface { get; set; }
+        public ScriptInterface Interface { get; set; }
         public List<string> Errors { get; private set; } = new List<string>();
 
         public ScriptExecutionContext ExecContext { get; set; }

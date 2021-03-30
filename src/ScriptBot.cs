@@ -14,7 +14,7 @@ namespace DiscordScriptBot
         private readonly DiscordSocketClient _client;
 
         private ScriptManager _scriptManager;
-        private InterfaceManager _scriptInterface;
+        private ScriptInterface _scriptInterface;
         private ScriptExecutor _scriptExecutor;
         private EventDispatcher _eventDispatcher;
 
@@ -25,7 +25,7 @@ namespace DiscordScriptBot
             _client.Ready += Ready;
             _client.Log += Log;
 
-            _scriptInterface = new InterfaceManager();
+            _scriptInterface = new ScriptInterface();
             _scriptExecutor = new ScriptExecutor(_config, _client, _scriptInterface);
             _eventDispatcher = new EventDispatcher(_client, _scriptExecutor);
             _scriptManager = new ScriptManager(_config, _scriptExecutor, _eventDispatcher);

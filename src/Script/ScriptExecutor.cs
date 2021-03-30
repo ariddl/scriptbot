@@ -14,7 +14,7 @@ namespace DiscordScriptBot.Script
 {
     public class ScriptExecutor
     {
-        public sealed class CompiledScript
+        private class CompiledScript
         {
             public Func<bool> CompiledFunc { get; set; }
             public ScriptExecutionContext ExecContext { get; set; }
@@ -22,14 +22,14 @@ namespace DiscordScriptBot.Script
 
         private Config _config;
         private DiscordSocketClient _client;
-        private InterfaceManager _interface;
+        private ScriptInterface _interface;
         private Dictionary<string, Queue<CompiledScript>> _scriptPool;
         private ConcurrentQueue<(string, object[])> _execQueue;
         private SemaphoreSlim _semaphore;
         private List<Task> _tasks;
         private bool _stop;
 
-        public ScriptExecutor(Config config, DiscordSocketClient client, InterfaceManager @interface)
+        public ScriptExecutor(Config config, DiscordSocketClient client, ScriptInterface @interface)
         {
             _config = config;
             _client = client;
@@ -66,7 +66,7 @@ namespace DiscordScriptBot.Script
                 _scriptPool.Remove(name);
         }
 
-        public CompiledScript CompileScript(IExpression tree, IScriptMeta meta)
+        private CompiledScript CompileScript(IExpression tree, IScriptMeta meta)
         {
             var @event = EventDispatcher.CreateEventInstance(meta.EventTrigger);
             var ctx = new BuildContext
@@ -99,7 +99,7 @@ namespace DiscordScriptBot.Script
 
         private async Task RunTask()
         {
-            var pending = new Queue<(string, object[] @params)>();
+            var pending = new Queue<(string, object[])>();
             while (!_stop)
             {
                 (string script, object[] @params) item;
