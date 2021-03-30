@@ -18,6 +18,11 @@ namespace DiscordScriptBot.Builder
             public const string TypeStr = "str";
             public const string TypeParam = "param";
 
+            public static LiteralType GetLiteralType(string type)
+                => type == TypeStr ? LiteralType.String :
+                   type == TypeId  ? LiteralType.Int :
+                   LiteralType.None;
+
             public string RefType { get; set; }
             public string Value { get; set; }
         }
@@ -41,7 +46,8 @@ namespace DiscordScriptBot.Builder
                     break;
                 case ClassRef.TypeId:
                 case ClassRef.TypeStr:
-                    (@class = InstantiateClass(info)).InitRef(context, Ref);
+                    if (!(@class = InstantiateClass(info)).InitRef(context, Ref))
+                        return context.Error($"CallExpression invalid class reference: {Ref.Value}");
                     break;
                 case ClassRef.TypeParam:
                     // Our wrappers are initialized in the IEvent.Init functions.
