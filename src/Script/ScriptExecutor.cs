@@ -48,7 +48,13 @@ namespace DiscordScriptBot.Script
         {
             _scriptPool.Add(meta.Name, new Queue<CompiledScript>());
             for (int i = 0; i < _config.ScriptPoolSize; ++i)
-                _scriptPool[meta.Name].Enqueue(CompileScript(tree, meta));
+            {
+                var compiled = CompileScript(tree, meta);
+                if (compiled != null)
+                    _scriptPool[meta.Name].Enqueue(compiled);
+                else
+                    return;
+            }
             Console.WriteLine($"Compiled script: {meta.Name}");
         }
 
@@ -75,7 +81,8 @@ namespace DiscordScriptBot.Script
                 Console.WriteLine($"CompileScript: {ctx.Errors.Count} errors!");
                 foreach (string error in ctx.Errors)
                     Console.WriteLine($" - Msg: {error}");
-                throw new Exception();
+                Console.WriteLine($"Script {meta.Name} compilation failed.");
+                return null;
             }
 
             var compiled = new CompiledScript

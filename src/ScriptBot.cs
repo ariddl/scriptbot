@@ -27,7 +27,7 @@ namespace DiscordScriptBot
 
             _scriptInterface = new InterfaceManager();
             _scriptExecutor = new ScriptExecutor(_config, _client, _scriptInterface);
-            _eventDispatcher = new EventDispatcher(_config, _client, _scriptExecutor);
+            _eventDispatcher = new EventDispatcher(_client, _scriptExecutor);
             _scriptManager = new ScriptManager(_config, _scriptExecutor, _eventDispatcher);
 
             _scriptManager.RemoveScript("test2");
