@@ -26,6 +26,6 @@ namespace DiscordScriptBot.Wrapper
         public StringWrapper Text() => _text;
 
         [WrapperDecl("test_print", "Test")]
-        public async Task Print() => await AtomicConsole.WriteLine($"test_print: {Msg.Content}");
+        public async Task Print() => await AtomicConsole.WriteLine($"test_print: {_text}");
     }
 }

@@ -10,9 +10,13 @@ namespace DiscordScriptBot.Script
         private IEventInstance _event;
         private Queue<Func<Task>> _taskQueue;
 
-        public ScriptExecutionContext() => _taskQueue = new Queue<Func<Task>>();
+        public ScriptExecutionContext(IEventInstance @event)
+        {
+            _event = @event;
+            _taskQueue = new Queue<Func<Task>>();
+        }
 
-        public void Init(IEventInstance @event) => _event = @event;
+        public void Init(params object[] @params) => _event.Init(@params);
 
         public object GetParam(string name) => _event.GetParam(name);
 

@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Linq;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using DiscordScriptBot.Event;
 
 namespace DiscordScriptBot.Script
 {
@@ -20,8 +21,6 @@ namespace DiscordScriptBot.Script
             string EventTrigger { get; }
             string Author { get; }
             DateTime CreationDate { get; }
-            public bool Enabled { get; set; }
-            public BlockExpression Tree { get; set; }
         }
 
         public class ScriptDefinition : IScriptMeta
@@ -39,15 +38,20 @@ namespace DiscordScriptBot.Script
         }
 
         private Config _config;
+        private ScriptExecutor _executor;
+        private EventDispatcher _dispatcher;
         private Dictionary<string, Type> _tagMappings;
         private Dictionary<string, ScriptDefinition> _scriptDefs;
 
-        public ScriptManager(Config config)
+        public ScriptManager(Config config, ScriptExecutor executor, EventDispatcher dispatcher)
         {
             _config = config;
-
+            _executor = executor;
+            _dispatcher = dispatcher;
             _tagMappings = new Dictionary<string, Type>() { { "scriptDef", typeof(ScriptDefinition) },
                                                             { "ref", typeof(CallExpression.ClassRef) } };
+            _scriptDefs = new Dictionary<string, ScriptDefinition>();
+
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 foreach (Type type in assembly.GetTypes())
@@ -65,7 +69,6 @@ namespace DiscordScriptBot.Script
                 }
             }
 
-            _scriptDefs = new Dictionary<string, ScriptDefinition>();
             if (Directory.Exists(config.ScriptsDir))
             {
                 var deserializer = GetSerializerBuilder<DeserializerBuilder>().Build();
@@ -76,8 +79,10 @@ namespace DiscordScriptBot.Script
                     try
                     {
                         var script = deserializer.Deserialize<ScriptDefinition>(content);
-                        _scriptDefs.Add(script.Name, script);
-                        Console.WriteLine($"Loaded script {script.Name}");
+                        if (script.EventTrigger.Length == 0)
+                            throw new Exception("Empty event trigger"); // call exception handler below
+                        Console.WriteLine($"Loaded script: {script.Name}");
+                        AddScript(script);
                     }
                     catch (Exception e)
                     {
@@ -87,7 +92,7 @@ namespace DiscordScriptBot.Script
             }
         }
 
-        public void AddScript(string name, string description, string author, IExpression tree)
+        public void AddScript(string name, string description, string author, BlockExpression tree)
         {
             var definition = new ScriptDefinition
             {
@@ -95,11 +100,20 @@ namespace DiscordScriptBot.Script
                 Description = description,
                 Author = author,
                 CreationDate = DateTime.Now,
-                Enabled = true
+                Enabled = true,
+                Tree = tree
             };
-            Debug.Assert(!_scriptDefs.ContainsKey(definition.Name));
-            _scriptDefs.Add(definition.Name, definition);
+            AddScript(definition);
             SaveScript(definition.Name);
+        }
+
+        private void AddScript(ScriptDefinition script)
+        {
+            Debug.Assert(!_scriptDefs.ContainsKey(script.Name));
+            if (!_dispatcher.SubscribeScript(script.EventTrigger, script.Name))
+                Console.WriteLine($"Failed to SubscribeScript on dispatcher: {script.EventTrigger}");
+            _scriptDefs.Add(script.Name, script);
+            _executor.AddScript(script, script.Tree);
         }
 
         public void RemoveScript(string name)
@@ -109,6 +123,7 @@ namespace DiscordScriptBot.Script
 
             new FileInfo(GetScriptFile(_scriptDefs[name])).Delete();
             _scriptDefs.Remove(name);
+            _executor.RemoveScript(name);
         }
 
         public void SaveScript(string name)

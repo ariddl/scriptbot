@@ -16,7 +16,7 @@ namespace DiscordScriptBot
         private ScriptManager _scriptManager;
         private InterfaceManager _scriptInterface;
         private ScriptExecutor _scriptExecutor;
-        private EventDispatcher _dispatcher;
+        private EventDispatcher _eventDispatcher;
 
         public ScriptBot(Config config)
         {
@@ -25,24 +25,45 @@ namespace DiscordScriptBot
             _client.Ready += Ready;
             _client.Log += Log;
 
-            _scriptManager = new ScriptManager(_config);
             _scriptInterface = new InterfaceManager();
-            _scriptExecutor = new ScriptExecutor(_config, _client, _scriptInterface, _scriptManager);
-            _dispatcher = new EventDispatcher(_config, _client, _scriptExecutor);
-            _scriptExecutor.Load();
+            _scriptExecutor = new ScriptExecutor(_config, _client, _scriptInterface);
+            _eventDispatcher = new EventDispatcher(_config, _client, _scriptExecutor);
+            _scriptManager = new ScriptManager(_config, _scriptExecutor, _eventDispatcher);
 
-            //_scriptManager.RemoveScript("test");
-            ////return;
-            //_scriptManager.AddScript("test", "test script", "author", new Builder.BlockExpression
+            _scriptManager.RemoveScript("test2");
+            //_scriptManager.AddScript("test2", "another test script", "author", new Builder.BlockExpression
             //{
             //    Expressions = new System.Collections.Generic.List<Builder.IExpression>()
+            //    {
+            //        new Builder.IfExpression
+            //        {
+            //            Test = new Builder.CallExpression
+            //            {
+            //                ClassName = "message",
+            //                Ref = new Builder.CallExpression.ClassRef
+            //                {
+            //                    RefType = Builder.CallExpression.ClassRef.TypeParam,
+            //                    Value = "message"
+            //                },
+            //                FuncName = "text.contains"
+            //            },
+            //            IfTrue = new Builder.CallExpression
+            //            {
+            //                ClassName = "message",
+            //                Ref = new Builder.CallExpression.ClassRef
+            //                {
+            //                    RefType = Builder.CallExpression.ClassRef.TypeParam,
+            //                    Value = "message"
+            //                },
+            //                FuncName = "test_print"
+            //            }
+            //        }
+            //    }
             //});
         }
 
         private Task Ready()
         {
-            Console.WriteLine("ScriptBot ready");
-            // activate scripts
             return Task.CompletedTask;
         }
 

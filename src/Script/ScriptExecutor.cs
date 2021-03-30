@@ -23,63 +23,57 @@ namespace DiscordScriptBot.Script
         private Config _config;
         private DiscordSocketClient _client;
         private InterfaceManager _interface;
-        private ScriptManager _scriptManager;
         private Dictionary<string, Queue<CompiledScript>> _scriptPool;
-        private ConcurrentQueue<(string, IEventInstance)> _execQueue;
+        private ConcurrentQueue<(string, object[])> _execQueue;
         private SemaphoreSlim _semaphore;
         private List<Task> _tasks;
         private bool _stop;
 
-        public ScriptExecutor(Config config, DiscordSocketClient client, InterfaceManager @interface,
-                              ScriptManager scriptManager)
+        public ScriptExecutor(Config config, DiscordSocketClient client, InterfaceManager @interface)
         {
             _config = config;
             _client = client;
             _interface = @interface;
-            _scriptManager = scriptManager;
             _scriptPool = new Dictionary<string, Queue<CompiledScript>>();
-            _execQueue = new ConcurrentQueue<(string, IEventInstance)>();
+            _execQueue = new ConcurrentQueue<(string, object[])>();
             _semaphore = new SemaphoreSlim(1, 1);
             _tasks = new List<Task>();
             _stop = false;
 
-            for (int i = 0; i < config.Tasks; ++i)
+            for (int i = 0; i < _config.Tasks; ++i)
                 _tasks.Add(RunTask());
-
-            
         }
 
-        public void Load()
+        public void AddScript(IScriptMeta meta, IExpression tree)
         {
-            foreach (IScriptMeta script in _scriptManager.GetScripts(true))
-            {
-                _scriptPool.Add(script.Name, new Queue<CompiledScript>());
-                for (int i = 0; i < _config.ScriptPoolSize; ++i)
-                    _scriptPool[script.Name].Enqueue(CompileScript(script.Tree, script));
+            _scriptPool.Add(meta.Name, new Queue<CompiledScript>());
+            for (int i = 0; i < _config.ScriptPoolSize; ++i)
+                _scriptPool[meta.Name].Enqueue(CompileScript(tree, meta));
+            Console.WriteLine($"Compiled script: {meta.Name}");
+        }
 
-                Console.WriteLine($"Compiled script: {script.Name}");
-                if (!EventDispatcher.Instance.SubscribeScript(script.EventTrigger, script.Name))
-                    Console.WriteLine($"Failed to SubscribeScript on dispatcher: {script.EventTrigger}");
-            }
+        public void RemoveScript(string name)
+        {
+            if (_scriptPool.ContainsKey(name))
+                _scriptPool.Remove(name);
         }
 
         public CompiledScript CompileScript(IExpression tree, IScriptMeta meta)
         {
-            var execCtx = new ScriptExecutionContext();
-            execCtx.Init(EventDispatcher.Instance.GetEventInstance(meta.EventTrigger));
-            var buildCtx = new BuildContext
+            var @event = EventDispatcher.CreateEventInstance(meta.EventTrigger);
+            var ctx = new BuildContext
             {
                 Discord = _client,
                 Guild = null, // TODO
                 Interface = _interface,
-                ExecContext = execCtx
+                ExecContext = new ScriptExecutionContext(@event)
             };
 
-            var body = tree.Build(buildCtx);
-            if (buildCtx.Errors.Count != 0)
+            var body = tree.Build(ctx);
+            if (ctx.Errors.Count != 0)
             {
-                Console.WriteLine($"CompileScript: {buildCtx.Errors.Count} errors!");
-                foreach (string error in buildCtx.Errors)
+                Console.WriteLine($"CompileScript: {ctx.Errors.Count} errors!");
+                foreach (string error in ctx.Errors)
                     Console.WriteLine($" - Msg: {error}");
                 throw new Exception();
             }
@@ -87,26 +81,26 @@ namespace DiscordScriptBot.Script
             var compiled = new CompiledScript
             {
                 CompiledFunc = Expression.Lambda<Func<bool>>(body).Compile(),
-                ExecContext = execCtx
+                ExecContext = ctx.ExecContext
             };
             return compiled;
         }
 
-        public void EnqueueExecute(string script, IEventInstance instance)
-            => _execQueue.Enqueue((script, instance));
+        public void EnqueueExecute(string script, params object[] @params)
+            => _execQueue.Enqueue((script, @params));
 
         private async Task RunTask()
         {
-            var pending = new Queue<(string, IEventInstance)>();
+            var pending = new Queue<(string, object[] @params)>();
             while (!_stop)
             {
-                (string script, IEventInstance @event) item;
+                (string script, object[] @params) item;
                 while (_execQueue.TryDequeue(out item))
                 {
                     var compiled = await TryGetCompiledScript(item.script);
                     if (compiled != null)
                     {
-                        await RunScript(compiled, item.@event);
+                        await RunScript(compiled, item.@params);
                         await ReturnCompiledScript(item.script, compiled);
                     }
                     else
@@ -120,10 +114,10 @@ namespace DiscordScriptBot.Script
             }
         }
 
-        private async Task RunScript(CompiledScript script, IEventInstance @event)
+        private async Task RunScript(CompiledScript script, object[] @params)
         {
             await AtomicConsole.WriteLine("RunScript");
-            script.ExecContext.Init(@event);
+            script.ExecContext.Init(@params);
             script.CompiledFunc();
             await script.ExecContext.AwaitCompletion();
         }

@@ -44,10 +44,10 @@ namespace DiscordScriptBot.Builder
                     (@class = InstantiateClass(info)).InitRef(context, Ref);
                     break;
                 case ClassRef.TypeParam:
-                    object param = context.ExecContext.GetParam(Ref.Value);
-                    if (param == null)
+                    // Our wrappers are initialized in the IEvent.Init functions.
+                    @class = (IWrapper)context.ExecContext.GetParam(Ref.Value);
+                    if (@class == null)
                         return context.Error($"CallExpression references unknown parameter: {Ref.Value}");
-                    (@class = InstantiateClass(info)).Init(param);
                     break;
             }
 
@@ -82,6 +82,7 @@ namespace DiscordScriptBot.Builder
         private static IWrapper InstantiateClass(IWrapperInfo i)
             => (IWrapper)Activator.CreateInstance(i.Type);
 
-        private IEnumerable<Expression> ConvertedParams => Parameters.ToList().ConvertAll(e => e.Build());
+        private IEnumerable<Expression> ConvertedParams
+            => Parameters != null ? Parameters.ToList().ConvertAll(e => e.Build()) : new List<Expression>();
     }
 }
