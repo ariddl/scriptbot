@@ -1,0 +1,35 @@
+!!scriptDef
+name: test
+description: test script
+guild: 815760659174129705
+eventTrigger: messageReceived
+author: author
+creationDate: 2021-03-25T13:14:04.3347023-05:00
+enabled: true
+tree: !!block
+  expressions:
+  - !!call
+    className: message
+    ref: !!ref
+      refType: param
+      value: message
+    funcName: test_print
+    parameters:
+  - !!call
+    className: textChannel
+    ref: !!ref
+      refType: id
+      value: 815760659174129708
+    funcName: sendText
+    parameters:
+    - !!constant
+      value: Sending via channel id!
+  - !!call
+    className: textChannel
+    ref: !!ref
+      refType: str
+      value: general
+    funcName: sendText
+    parameters:
+    - !!constant
+      value: Sending via channel name!
