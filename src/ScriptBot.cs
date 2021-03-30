@@ -24,46 +24,16 @@ namespace DiscordScriptBot
             _client = new DiscordSocketClient();
             _client.Ready += Ready;
             _client.Log += Log;
+        }
 
+        private Task Ready()
+        {
+            // Connected to Discord, let's initialize!
             _scriptInterface = new ScriptInterface();
             _scriptExecutor = new ScriptExecutor(_config, _client, _scriptInterface);
             _eventDispatcher = new EventDispatcher(_client, _scriptExecutor);
             _scriptManager = new ScriptManager(_config, _scriptExecutor, _eventDispatcher);
 
-            _scriptManager.RemoveScript("test2");
-            //_scriptManager.AddScript("test2", "another test script", "author", new Builder.BlockExpression
-            //{
-            //    Expressions = new System.Collections.Generic.List<Builder.IExpression>()
-            //    {
-            //        new Builder.IfExpression
-            //        {
-            //            Test = new Builder.CallExpression
-            //            {
-            //                ClassName = "message",
-            //                Ref = new Builder.CallExpression.ClassRef
-            //                {
-            //                    RefType = Builder.CallExpression.ClassRef.TypeParam,
-            //                    Value = "message"
-            //                },
-            //                FuncName = "text.contains"
-            //            },
-            //            IfTrue = new Builder.CallExpression
-            //            {
-            //                ClassName = "message",
-            //                Ref = new Builder.CallExpression.ClassRef
-            //                {
-            //                    RefType = Builder.CallExpression.ClassRef.TypeParam,
-            //                    Value = "message"
-            //                },
-            //                FuncName = "test_print"
-            //            }
-            //        }
-            //    }
-            //});
-        }
-
-        private Task Ready()
-        {
             return Task.CompletedTask;
         }
 

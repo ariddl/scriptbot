@@ -17,7 +17,7 @@ namespace DiscordScriptBot.Script
         {
             string Name { get; }
             string Description { get; }
-            string Guild { get; } // TODO
+            ulong Guild { get; } // TODO
             string EventTrigger { get; }
             string Author { get; }
             DateTime CreationDate { get; }
@@ -28,7 +28,7 @@ namespace DiscordScriptBot.Script
             // Metadata
             public string Name { get; set; }
             public string Description { get; set; }
-            public string Guild { get; set; }
+            public ulong Guild { get; set; }
             public string EventTrigger { get; set; }
             public string Author { get; set; }
             public DateTime CreationDate { get; set; }

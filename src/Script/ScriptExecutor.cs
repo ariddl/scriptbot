@@ -72,7 +72,7 @@ namespace DiscordScriptBot.Script
             var ctx = new BuildContext
             {
                 Discord = _client,
-                Guild = null, // TODO
+                Guild = _client.GetGuild(meta.Guild),
                 Interface = _interface,
                 ExecContext = new ScriptExecutionContext(@event)
             };
@@ -147,11 +147,10 @@ namespace DiscordScriptBot.Script
             _semaphore.Release();
         }
 
-        public async Task Stop()
+        public void Stop()
         {
             _stop = true;
-            foreach (Task t in _tasks)
-                await t;
+            Task.WaitAll(_tasks.ToArray());
         }
     }
 }
