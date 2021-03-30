@@ -13,6 +13,8 @@ namespace DiscordScriptBot
         public string ScriptsDir { get; set; } = "scripts/";
         public int ScriptPoolSize { get; set; } = 100;
         public int Tasks { get; set; } = 4;
+        public bool LogDiscord { get; set; } = true;
+        public bool LogExecution { get; set; } = true;
 
         public static Config Load(string file)
         {

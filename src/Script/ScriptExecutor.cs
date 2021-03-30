@@ -16,6 +16,7 @@ namespace DiscordScriptBot.Script
     {
         private class CompiledScript
         {
+            public IScriptMeta Meta { get; set; }
             public Func<bool> CompiledFunc { get; set; }
             public ScriptExecutionContext ExecContext { get; set; }
         }
@@ -89,6 +90,7 @@ namespace DiscordScriptBot.Script
 
             return new CompiledScript
             {
+                Meta = meta,
                 CompiledFunc = Expression.Lambda<Func<bool>>(body).Compile(),
                 ExecContext = ctx.ExecContext
             };
@@ -124,10 +126,11 @@ namespace DiscordScriptBot.Script
 
         private async Task RunScript(CompiledScript script, object[] @params)
         {
-            await AtomicConsole.WriteLine("RunScript");
+            await ExecLog($"Running script: {script.Meta.Name}");
             script.ExecContext.Init(@params);
             script.CompiledFunc();
             await script.ExecContext.AwaitCompletion();
+            await ExecLog($"Finished script: {script.Meta.Name}");
         }
 
         private async Task<CompiledScript> TryGetCompiledScript(string name)
@@ -145,6 +148,12 @@ namespace DiscordScriptBot.Script
             await _semaphore.WaitAsync();
             _scriptPool[name].Enqueue(script);
             _semaphore.Release();
+        }
+
+        private async Task ExecLog(string msg)
+        {
+            if (_config.LogExecution)
+                await AtomicConsole.WriteLine(msg);
         }
 
         public void Stop()
