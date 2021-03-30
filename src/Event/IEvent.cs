@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace DiscordScriptBot.Event
+﻿namespace DiscordScriptBot.Event
 {
     public interface IEvent
     {

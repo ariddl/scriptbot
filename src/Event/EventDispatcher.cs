@@ -27,7 +27,7 @@ namespace DiscordScriptBot.Event
         private delegate bool EventFilter(EventDispatcher d, params object[] @params);
         private static readonly Dictionary<EventType, EventFilter> _eventFilters = new Dictionary<EventType, EventFilter>()
         {
-            { EventType.MessageReceived, (d, p) => (p[0] as SocketMessage).Author.Id != d._client.CurrentUser.Id }
+            { EventType.MessageReceived, (d, p) => (p[0] as SocketMessage).Author.Id == d._client.CurrentUser.Id }
         };
 
         private DiscordSocketClient _client;
@@ -67,7 +67,7 @@ namespace DiscordScriptBot.Event
                 return;
 
             // Check if we should skip this event via filter
-            if (_eventFilters.ContainsKey(@event) && !_eventFilters[@event](this, @params))
+            if (_eventFilters.ContainsKey(@event) && _eventFilters[@event](this, @params))
                 return;
 
             // This event will be sent to all scripts listening for this event.

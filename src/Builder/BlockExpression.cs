@@ -12,7 +12,7 @@ namespace DiscordScriptBot.Builder
         public Expression Build(BuildContext context)
             => Expression.Block(
                 Expression.Block(Expressions.ConvertAll(e => e.Build(context))),
-                Expression.Constant(true)  // return value
+                Expression.Constant(true) // return value
                );
     }
 }
