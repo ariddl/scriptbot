@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using DiscordScriptBot.Event;
+using DiscordScriptBot.Script;
 
 namespace DiscordScriptBot
 {
@@ -11,18 +12,38 @@ namespace DiscordScriptBot
     {
         private Config _config;
         private readonly DiscordSocketClient _client;
+
+        private ScriptManager _scriptManager;
+        private InterfaceManager _scriptInterface;
+        private ScriptExecutor _scriptExecutor;
         private EventDispatcher _dispatcher;
 
         public ScriptBot(Config config)
         {
             _config = config;
             _client = new DiscordSocketClient();
+            _client.Ready += Ready;
             _client.Log += Log;
-            _dispatcher = new EventDispatcher(_client);
 
-            // Temp test stuff
-            Expression.Test.RunTests();
-            Script.Test.RunTests();
+            _scriptManager = new ScriptManager(_config);
+            _scriptInterface = new InterfaceManager();
+            _scriptExecutor = new ScriptExecutor(_config, _client, _scriptInterface, _scriptManager);
+            _dispatcher = new EventDispatcher(_config, _client, _scriptExecutor);
+            _scriptExecutor.Load();
+
+            //_scriptManager.RemoveScript("test");
+            ////return;
+            //_scriptManager.AddScript("test", "test script", "author", new Builder.BlockExpression
+            //{
+            //    Expressions = new System.Collections.Generic.List<Builder.IExpression>()
+            //});
+        }
+
+        private Task Ready()
+        {
+            Console.WriteLine("ScriptBot ready");
+            // activate scripts
+            return Task.CompletedTask;
         }
 
         private Task Log(LogMessage arg)
