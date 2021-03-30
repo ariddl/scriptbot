@@ -10,6 +10,10 @@ namespace DiscordScriptBot
         private static readonly INamingConvention NamingConvention = CamelCaseNamingConvention.Instance;
 
         public string Token { get; set; } = null;
+        public string ScriptsDir { get; set; } = "scripts/";
+        public int EventPoolSize { get; set; } = 100;
+        public int ScriptPoolSize { get; set; } = 100;
+        public int Tasks { get; set; } = 4;
 
         public static Config Load(string file)
         {

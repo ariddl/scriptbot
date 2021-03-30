@@ -7,14 +7,15 @@ namespace DiscordScriptBot
     {
         static async Task Main(string[] args)
         {
-            string configFile = args.Length > 1 ? args[1] : "config.yml";
-            
+            string configFile = (args.Length > 1 ? args[1] : "config") + ".yml";
+
             Config config = Config.Load(configFile);
             if (!config.Validate())
             {
                 Console.WriteLine($"Configuration file {configFile} is invalid!");
                 return;
             }
+            config.Save(configFile);
 
             ScriptBot bot = new ScriptBot(config);
             await bot.Run();
