@@ -1,14 +1,16 @@
 ﻿using Discord;
 using DiscordScriptBot.Builder;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DiscordScriptBot.Wrapper
 {
-    public class ChannelWrapper : IWrapper
+    [WrapperDecl("textChannel", "A discord message.")]
+    public class TextChannelWrapper : IWrapper
     {
-        private IChannel _channel;
+        private ITextChannel _channel;
 
-        public void Init(object context) => _channel = (IChannel)context;
+        public void Init(object context) => _channel = (ITextChannel)context;
 
         public bool InitRef(BuildContext context, CallExpression.ClassRef @ref)
         {
@@ -26,6 +28,9 @@ namespace DiscordScriptBot.Wrapper
             }
             return _channel != null;
         }
+
+        [WrapperDecl("sendText", "Send a text message to this channel.")]
+        public async Task SendText(string text) => await _channel.SendMessageAsync(text);
 
         public LiteralType LiteralsAllowed => LiteralType.Int | LiteralType.String;
     }
