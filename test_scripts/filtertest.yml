@@ -1,0 +1,35 @@
+!!scriptDef
+name: filter_test
+description: Delete messages containing target word.
+guild: 815760659174129705
+eventTrigger: messageReceived
+author: author
+creationDate: 2021-03-30T13:14:04.3347023-05:00
+enabled: true
+tree: !!block
+  expressions:
+  - !!call
+    className: message
+    ref: !!ref
+      refType: param
+      value: message
+    funcName: text.lower
+    parameters:
+  - !!if
+    test: !!call
+      className: message
+      ref: !!ref
+        refType: param
+        value: message
+      funcName: text.contains
+      parameters:
+        - !!constant
+          value: deletethismessage
+    ifTrue: !!call
+      className: message
+      ref: !!ref
+        refType: param
+        value: message
+      funcName: delete
+      parameters:
+    ifFalse:

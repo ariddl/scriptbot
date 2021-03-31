@@ -9,8 +9,13 @@ namespace DiscordScriptBot.Builder
         public IExpression IfTrue { get; set; }
         public IExpression IfFalse { get; set; }
 
-        public Expression Build(BuildContext ctx)
-            => IfFalse == null ? Expression.IfThen(Test.Build(ctx), IfTrue.Build(ctx))
-                : Expression.IfThenElse(Test.Build(ctx), IfTrue.Build(ctx), IfFalse.Build(ctx));
+        public Expression Build(BuildContext context)
+            => IfFalse == null ? Expression.IfThen(TestExpr(context), TrueExpr(context)) :
+               Expression.IfThenElse(TestExpr(context), TrueExpr(context), FalseExpr(context));
+
+        private Expression TestExpr(BuildContext context) => Test.Build(context);
+        private Expression TrueExpr(BuildContext context)
+            => IfTrue != null ? IfTrue.Build(context) : Expression.Empty();
+        private Expression FalseExpr(BuildContext context) => IfFalse.Build(context);
     }
 }

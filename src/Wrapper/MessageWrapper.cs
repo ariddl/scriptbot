@@ -25,6 +25,9 @@ namespace DiscordScriptBot.Wrapper
         [WrapperDecl("text", "The message content.", Target = "Msg.Content")]
         public StringWrapper Text() => _text;
 
+        [WrapperDecl("delete", "Delete the message.")]
+        public async Task Delete() => await Msg.DeleteAsync();
+
         [WrapperDecl("test_print", "Test")]
         public async Task Print() => await AtomicConsole.WriteLine($"test_print: {_text}");
     }
