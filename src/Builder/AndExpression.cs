@@ -9,6 +9,6 @@ namespace DiscordScriptBot.Builder
         public IExpression Right { get; set; }
 
         public Expression Build(BuildContext context)
-            => Expression.AndAlso(Left.Build(), Right.Build());
+            => Expression.AndAlso(Left.Build(context), Right.Build(context));
     }
 }

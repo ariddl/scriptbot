@@ -15,6 +15,6 @@ namespace DiscordScriptBot.Builder
     public interface IExpression
     {
         ExprType Type { get; }
-        Expression Build(BuildContext context = null);
+        Expression Build(BuildContext context);
     }
 }

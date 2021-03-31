@@ -111,7 +111,11 @@ namespace DiscordScriptBot.Script
 
         private void AddScript(ScriptDefinition script)
         {
-            Debug.Assert(!_scriptDefs.ContainsKey(script.Name));
+            if (_scriptDefs.ContainsKey(script.Name))
+            {
+                Console.WriteLine($"Ignoring script with duplicate name: {script.Name}");
+                return;
+            }
             _scriptDefs.Add(script.Name, script);
 
             // If this script isn't enabled, we're done..
