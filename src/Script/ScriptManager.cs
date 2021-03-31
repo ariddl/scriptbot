@@ -192,7 +192,7 @@ namespace DiscordScriptBot.Script
         public IScriptMeta GetScript(string name)
             => _scriptDefs.ContainsKey(name) ? _scriptDefs[name] : null;
 
-        private string GetScriptFile(ScriptDefinition d) => $"{_config.ScriptsDir}/{d.Name}.yaml";
+        private string GetScriptFile(ScriptDefinition d) => $"{_config.ScriptsDir}/{d.Name}.yml";
 
         private T GetSerializerBuilder<T>() where T : BuilderSkeleton<T>, new()
         {

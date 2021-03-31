@@ -13,6 +13,13 @@ tree: !!block
     ref: !!ref
       refType: param
       value: message
+    funcName: text.lower
+    parameters:
+  - !!call
+    className: message
+    ref: !!ref
+      refType: param
+      value: message
     funcName: test_print
     parameters:
   - !!call

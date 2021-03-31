@@ -1,0 +1,31 @@
+!!scriptDef
+name: echo_upper
+description: Echo every received message back to general in uppercase.
+guild: 815760659174129705
+eventTrigger: messageReceived
+author: author
+creationDate: 2021-03-30T13:14:04.3347023-05:00
+enabled: true
+tree: !!block
+  expressions:
+  - !!call
+    className: message
+    ref: !!ref
+      refType: param
+      value: message
+    funcName: text.upper
+    parameters:
+  - !!call
+    className: textChannel
+    ref: !!ref
+      refType: str
+      value: general
+    funcName: sendText
+    parameters:
+    - !!call
+      className: message
+      ref: !!ref
+        refType: param
+        value: message
+      funcName: text.value
+      parameters:
