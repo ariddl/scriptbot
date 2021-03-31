@@ -32,6 +32,9 @@ namespace DiscordScriptBot.Wrapper
         [WrapperDecl("equals", "If the string matches the specified string.")]
         public bool Equals(string value) => _value.Equals(value);
 
+        [WrapperDecl("value", "The string value.")]
+        public string Value() => _value;
+
         public override string ToString() => _value;
     }
 }

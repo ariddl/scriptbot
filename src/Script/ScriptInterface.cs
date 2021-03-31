@@ -13,8 +13,8 @@ namespace DiscordScriptBot.Script
     {
         public sealed class FunctionInfo
         {
-            public MethodInfo Info;
-            public (string, string)[] Params;
+            public MethodInfo Info { get; set; }
+            public (string, string)[] Params { get; set; }
         }
 
         public interface IWrapperInfo
@@ -39,11 +39,13 @@ namespace DiscordScriptBot.Script
 
         private Dictionary<string, WrapperInfo> _wrappers;
         private Dictionary<string, WrapperInfo> _events;
+        private Dictionary<Type, WrapperInfo> _wrapperTypes;
 
         public ScriptInterface()
         {
             _wrappers = new Dictionary<string, WrapperInfo>();
             _events = new Dictionary<string, WrapperInfo>();
+            _wrapperTypes = new Dictionary<Type, WrapperInfo>();
 
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -72,6 +74,7 @@ namespace DiscordScriptBot.Script
                         Properties = new Dictionary<string, FunctionInfo>()
                     };
                     wrapDict.Add(wrapAttr.Name, wrapper);
+                    _wrapperTypes.Add(type, wrapper);
 
                     foreach (MemberInfo m in type.GetMembers())
                     {
@@ -85,10 +88,11 @@ namespace DiscordScriptBot.Script
                         MethodInfo method = (MethodInfo)m;
 
                         // Choose the appropriate dictionary to store this function
+                        var rt = method.ReturnType;
                         var dict = wrapper.Properties;
-                        if (method.ReturnType == typeof(bool))
+                        if (rt == typeof(bool))
                             dict = wrapper.Conditionals;
-                        else if (method.ReturnType == typeof(void) || method.ReturnType == typeof(Task))
+                        else if (rt == typeof(void) || rt == typeof(Task))
                             dict = wrapper.Actions;
 
                         Debug.Assert(!isEvent || dict != wrapper.Conditionals, "Event has conditional!");
@@ -112,6 +116,7 @@ namespace DiscordScriptBot.Script
         public IWrapperInfo[] GetEvents() => _events.Values.ToArray();
 
         public IWrapperInfo GetWrapper(string name) => _wrappers.ContainsKey(name) ? _wrappers[name] : null;
+        public IWrapperInfo GetWrapper(Type type) => _wrapperTypes.ContainsKey(type) ? _wrapperTypes[type] : null;
         public IWrapperInfo GetEvent(string name) => _events.ContainsKey(name) ? _events[name] : null;
     }
 }

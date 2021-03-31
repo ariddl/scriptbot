@@ -35,10 +35,13 @@ namespace DiscordScriptBot.Builder
 
         public Expression Build(BuildContext context)
         {
+            // Find the wrapper info for the class. This will contain
+            // all the actions/conditionals/properties we can use.
             IWrapperInfo info = context.Interface.GetWrapper(ClassName);
             if (info == null)
                 return context.Error($"CallExpression references unknown class: {ClassName}");
 
+            // Determine the way in which we should locate this class instance
             IWrapper @class = null;
             switch (Ref.RefType)
             {
@@ -57,10 +60,38 @@ namespace DiscordScriptBot.Builder
                     break;
             }
 
-            FunctionInfo func;
-            if (info.Actions.ContainsKey(FuncName))
+            string funcName = FuncName;
+            if (funcName.Contains("."))
             {
-                func = info.Actions[FuncName];
+                // funcName is something like text.lower, i.e., a member of a member
+                string[] propertyNames = funcName.Split('.');
+                for (int i = 0; i < propertyNames.Length - 1; ++i)
+                {
+                    // The tokens leading up to the function name MUST be properties, since they
+                    // return a wrapper that also has functions.
+                    string property = propertyNames[i];
+                    if (!info.Properties.ContainsKey(property))
+                        return context.Error($"CallExpression references unknown property: {property}");
+                    
+                    // Use reflection to get the instance of the class (reflection is OK for building).
+                    var m = info.Properties[property].Info;
+                    @class = m.Invoke(@class, null) as IWrapper;
+
+                    // Get the wrapper representing this property
+                    info = context.Interface.GetWrapper(m.ReturnType);
+                    if (info == null || @class == null)
+                        return context.Error($"CallExpression failed to locate property: {property}");
+                }
+
+                // The last token is the relative function name
+                funcName = propertyNames[propertyNames.Length - 1];
+            }
+
+            // Locate the function in the wrapper info
+            FunctionInfo func;
+            if (info.Actions.ContainsKey(funcName))
+            {
+                func = info.Actions[funcName];
                 if (func.Info.ReturnType == typeof(Task))
                 {
                     // To ensure in-order execution of asynchronous calls, we wrap the action call
@@ -68,27 +99,27 @@ namespace DiscordScriptBot.Builder
                     // script execution context, which will then run the tasks and await them.
                     var body = Expression.Call(Expression.Constant(@class),
                                                func.Info,
-                                               ConvertedParams);
+                                               ConvertedParams(context));
                     var taskFunc = Expression.Lambda<Func<Task>>(body).Compile();
                     return Expression.Call(Expression.Constant(context.ExecContext),
                                            typeof(ScriptExecutionContext).GetMethod("EnqueueTask"),
                                            Expression.Constant(taskFunc));
                 }
             }
-            else if (info.Conditionals.ContainsKey(FuncName))
-                func = info.Conditionals[FuncName];
-            else if (info.Properties.ContainsKey(FuncName))
-                func = info.Properties[FuncName];
+            else if (info.Conditionals.ContainsKey(funcName))
+                func = info.Conditionals[funcName];
+            else if (info.Properties.ContainsKey(funcName))
+                func = info.Properties[funcName];
             else
-                return context.Error($"CallExpression references unknown function: {FuncName}");
+                return context.Error($"CallExpression references unknown function: {funcName}");
 
-            return Expression.Call(Expression.Constant(@class), func.Info, ConvertedParams);
+            return Expression.Call(Expression.Constant(@class), func.Info, ConvertedParams(context));
         }
 
         private static IWrapper InstantiateClass(IWrapperInfo i)
             => (IWrapper)Activator.CreateInstance(i.Type);
 
-        private IEnumerable<Expression> ConvertedParams
-            => Parameters != null ? Parameters.ToList().ConvertAll(e => e.Build()) : new List<Expression>();
+        private IEnumerable<Expression> ConvertedParams(BuildContext c)
+            => Parameters != null ? Parameters.ToList().ConvertAll(e => e.Build(c)) : new List<Expression>();
     }
 }
