@@ -112,21 +112,55 @@ namespace DiscordScriptBot.Script
         private void AddScript(ScriptDefinition script)
         {
             Debug.Assert(!_scriptDefs.ContainsKey(script.Name));
+            _scriptDefs.Add(script.Name, script);
 
-            // Subscribe the script to its requested event trigger.
-            // If this fails, it means the requested event is invalid/unsupported.
-            if (!_dispatcher.SubscribeScript(script.EventTrigger, script.Name))
+            // If this script isn't enabled, we're done..
+            if (!script.Enabled)
             {
-                Console.WriteLine($"Failed to SubscribeScript on dispatcher: {script.EventTrigger}");
+                Console.WriteLine($"Script disabled: {script.Name}");
                 return;
             }
 
-            // Compile the script, and if that succeeds, add the script.
-            // Otherwise revert and remove the script from the dispatcher.
-            if (_executor.AddScript(script, script.Tree))
-                _scriptDefs.Add(script.Name, script);
+            script.Enabled = false;
+            if (!SetScriptEnabled(script.Name, true, false))
+                _scriptDefs.Remove(script.Name);
+        }
+
+        public bool SetScriptEnabled(string name, bool enabled, bool save = false)
+        {
+            if (!_scriptDefs.ContainsKey(name) || _scriptDefs[name].Enabled == enabled)
+                return false;
+
+            var script = _scriptDefs[name];
+            if (enabled)
+            {
+                // Subscribe the script to its requested event trigger.
+                // If this fails, it means the requested event is invalid/unsupported.
+                if (!_dispatcher.SubscribeScript(script.EventTrigger, script.Name))
+                {
+                    Console.WriteLine($"Failed to SubscribeScript on dispatcher: {script.EventTrigger}");
+                    return false;
+                }
+
+                // Compile the script, and if that succeeds, add the script.
+                // Otherwise revert and remove the script from the dispatcher.
+                if (!_executor.AddScript(script, script.Tree))
+                {
+                    _dispatcher.UnsubscribeScript(script.EventTrigger, script.Name);
+                    Console.WriteLine($"Failed to AddScript on executor: {script.Name}");
+                    return false;
+                }
+            }
             else
+            {
                 _dispatcher.UnsubscribeScript(script.EventTrigger, script.Name);
+                _executor.RemoveScript(script.Name);
+            }
+
+            script.Enabled = enabled;
+            if (save)
+                SaveScript(name);
+            return true;
         }
 
         public void RemoveScript(string name)
@@ -134,9 +168,9 @@ namespace DiscordScriptBot.Script
             if (!_scriptDefs.ContainsKey(name))
                 return;
 
+            SetScriptEnabled(name, false, false);
             new FileInfo(GetScriptFile(_scriptDefs[name])).Delete();
             _scriptDefs.Remove(name);
-            _executor.RemoveScript(name);
         }
 
         public void SaveScript(string name)

@@ -84,7 +84,7 @@ namespace DiscordScriptBot.Script
                 Console.WriteLine($"CompileScript: {ctx.Errors.Count} errors!");
                 foreach (string error in ctx.Errors)
                     Console.WriteLine($" - Msg: {error}");
-                Console.WriteLine($"Script {meta.Name} compilation failed.");
+                Console.WriteLine($"CompileScript: {meta.Name} compilation failed.");
                 return null;
             }
 
