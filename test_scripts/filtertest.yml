@@ -16,15 +16,25 @@ tree: !!block
     funcName: text.lower
     parameters:
   - !!if
-    test: !!call
-      className: message
-      ref: !!ref
-        refType: param
-        value: message
-      funcName: text.contains
-      parameters:
-        - !!constant
-          value: deletethismessage
+    test: !!orElse
+      left: !!call
+        className: message
+        ref: !!ref
+          refType: param
+          value: message
+        funcName: text.contains
+        parameters:
+          - !!constant
+            value: abc
+      right: !!call
+        className: message
+        ref: !!ref
+          refType: param
+          value: message
+        funcName: text.contains
+        parameters:
+          - !!constant
+            value: def
     ifTrue: !!call
       className: message
       ref: !!ref
