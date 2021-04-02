@@ -29,6 +29,9 @@ namespace DiscordScriptBot.Wrapper
             return _channel != null;
         }
 
+        [WrapperDecl("id", "The channel id.")]
+        public ulong Id() => _channel.Id;
+
         [WrapperDecl("sendText", "Send a text message to this channel.")]
         public async Task SendText(string text) => await _channel.SendMessageAsync(text);
 

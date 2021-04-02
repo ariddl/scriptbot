@@ -23,10 +23,10 @@ namespace DiscordScriptBot.Wrapper
         [WrapperDecl("contains", "If the string contains the specified substring.")]
         public bool Contains(string value) => _value.Contains(value);
 
-        [WrapperDecl("startsWith", "If the string contains the specified substring.")]
+        [WrapperDecl("startsWith", "If the string starts with the specified substring.")]
         public bool StartsWith(string value) => _value.StartsWith(value);
 
-        [WrapperDecl("endsWith", "If the string contains the specified substring.")]
+        [WrapperDecl("endsWith", "If the string ends with the specified substring.")]
         public bool EndsWith(string value) => _value.EndsWith(value);
 
         [WrapperDecl("equals", "If the string matches the specified string.")]
