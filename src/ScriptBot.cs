@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using DiscordScriptBot.Command;
 using DiscordScriptBot.Event;
 using DiscordScriptBot.Script;
 using DiscordScriptBot.Utility;
@@ -19,6 +20,7 @@ namespace DiscordScriptBot
         private ScriptInterface _scriptInterface;
         private ScriptExecutor _scriptExecutor;
         private EventDispatcher _eventDispatcher;
+        private CommandManager _commandManager;
 
         public ScriptBot(Config config)
         {
@@ -37,6 +39,8 @@ namespace DiscordScriptBot
             _scriptExecutor = new ScriptExecutor(_config, _client, _scriptInterface);
             _eventDispatcher = new EventDispatcher(_client, _scriptExecutor);
             _scriptManager = new ScriptManager(_config, _scriptExecutor, _eventDispatcher);
+            _commandManager = new CommandManager(_client, _scriptManager, _scriptInterface);
+            await _commandManager.InitAsync();
 
             await AtomicConsole.WriteLine("ScriptBot Ready.");
         }
