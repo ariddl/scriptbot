@@ -13,7 +13,21 @@ namespace DiscordScriptBot.Event
         UserJoined = 1,
         UserLeft,
         UserUpdated,
+        UserIsTyping,
+        UserBanned,
+        UserUnbanned,
+        UserVoiceState,
         MessageReceived,
+        MessageUpdated,
+        MessageDeleted,
+        MessagesBulkDeleted,
+        ReactionAdded,
+        ReactionRemoved,
+        RoleCreated,
+        RoleDeleted,
+        RoleUpdated,
+        InviteCreated,
+        InviteDeleted,
         End
     }
 
@@ -43,7 +57,21 @@ namespace DiscordScriptBot.Event
             _client.UserJoined += async u => await Dispatch(EventType.UserJoined, u);
             _client.UserLeft += async u => await Dispatch(EventType.UserLeft, u);
             _client.UserUpdated += async (a, b) => await Dispatch(EventType.UserUpdated, a, b);
+            _client.UserIsTyping += async (u, c) => await Dispatch(EventType.UserIsTyping, u, c);
+            _client.UserBanned += async (u, g) => await Dispatch(EventType.UserBanned, u, g);
+            _client.UserUnbanned += async (u, g) => await Dispatch(EventType.UserUnbanned, u, g);
+            _client.UserVoiceStateUpdated += async (u, s1, s2) => await Dispatch(EventType.UserVoiceState, u, s1, s2);
             _client.MessageReceived += async m => await Dispatch(EventType.MessageReceived, m);
+            _client.MessageUpdated += async (sm, m, u) => await Dispatch(EventType.MessageUpdated, sm, m, u);
+            _client.MessageDeleted += async (m, c) => await Dispatch(EventType.MessageDeleted, m, c);
+            _client.MessagesBulkDeleted += async (m, c) => await Dispatch(EventType.MessagesBulkDeleted, m, c);
+            _client.ReactionAdded += async (m, c, r) => await Dispatch(EventType.ReactionAdded, m, c, r);
+            _client.ReactionRemoved += async (m, c, r) => await Dispatch(EventType.ReactionRemoved, m, c, r);
+            _client.RoleCreated += async r => await Dispatch(EventType.RoleCreated, r);
+            _client.RoleDeleted += async r => await Dispatch(EventType.RoleDeleted, r);
+            _client.RoleUpdated += async (r1, r2) => await Dispatch(EventType.RoleUpdated, r1, r2);
+            _client.InviteCreated += async i => await Dispatch(EventType.InviteCreated, i);
+            _client.InviteDeleted += async (c, i) => await Dispatch(EventType.InviteDeleted, c, i);
         }
 
         public bool SubscribeScript(string eventName, string scriptName)
