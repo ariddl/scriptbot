@@ -6,6 +6,7 @@ using DiscordScriptBot.Wrapper;
 using DiscordScriptBot.Event;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Text;
 
 namespace DiscordScriptBot.Script
 {
@@ -15,6 +16,7 @@ namespace DiscordScriptBot.Script
         {
             public MethodInfo Info { get; set; }
             public (string, string)[] Params { get; set; }
+            public WrapperDecl Attribute { get; set; }
         }
 
         public interface IWrapperInfo
@@ -105,7 +107,8 @@ namespace DiscordScriptBot.Script
                         dict.Add(memberAttr.Name, new FunctionInfo
                         {
                             Info = method,
-                            Params = parameters.ToArray()
+                            Params = parameters.ToArray(),
+                            Attribute = memberAttr
                         });
                     }
                 }
@@ -118,5 +121,33 @@ namespace DiscordScriptBot.Script
         public IWrapperInfo GetWrapper(string name) => _wrappers.ContainsKey(name) ? _wrappers[name] : null;
         public IWrapperInfo GetWrapper(Type type) => _wrapperTypes.ContainsKey(type) ? _wrapperTypes[type] : null;
         public IWrapperInfo GetEvent(string name) => _events.ContainsKey(name) ? _events[name] : null;
+
+        public static string GetInterfaceString(IWrapperInfo wrapper, string type)
+        {
+            var b = new StringBuilder();
+            b.AppendLine($"`{type}({wrapper.Name}): {wrapper.Description}`");
+            b.AppendLine("```");
+            AppendFunctions(b, "Actions", wrapper.Actions);
+            AppendFunctions(b, "Conditionals", wrapper.Conditionals);
+            AppendFunctions(b, "Properties", wrapper.Properties);
+            b.AppendLine("```");
+            return b.ToString();
+        }
+
+        private static void AppendFunctions(StringBuilder b, string title, Dictionary<string, FunctionInfo> dict)
+        {
+            if (dict.Count == 0)
+                return;
+            b.AppendLine($" {title}:");
+            foreach (var keyval in dict)
+            {
+                b.AppendLine($" - {keyval.Key}: {keyval.Value.Attribute.Description}");
+                if (keyval.Value.Params.Length == 0)
+                    continue;
+                b.AppendLine("   Params: ");
+                foreach ((string name, string type) @param in keyval.Value.Params)
+                    b.AppendLine($"   - {@param.name}: {@param.type}");
+            }
+        }
     }
 }

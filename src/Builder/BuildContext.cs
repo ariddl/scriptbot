@@ -1,9 +1,7 @@
 ﻿using Discord.WebSocket;
 using DiscordScriptBot.Script;
-using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace DiscordScriptBot.Builder
 {

@@ -1,5 +1,4 @@
 ﻿using Discord.Commands;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using static DiscordScriptBot.Script.ScriptInterface;
@@ -8,55 +7,48 @@ namespace DiscordScriptBot.Command
 {
     public class ListInterfaceCommand : ModuleBase<CommandManager.CommandContext>
     {
-        [Command("events")]
-        public async Task ListEvents()
+        [Command("showevent")]
+        public async Task ShowEvent(string name = null)
         {
-            var events = Context.ScriptInterface.GetEvents();
-            var reply = GetWrappersString("Events", events);
-            await Context.Channel.SendMessageAsync(reply);
-        }
-
-        [Command("wrappers")]
-        public async Task ListWrappers()
-        {
-            var wrappers = Context.ScriptInterface.GetWrappers();
-            var reply = GetWrappersString("Wrappers", wrappers);
-            await Context.Channel.SendMessageAsync(reply);
-        }
-
-        private string GetWrappersString(string title, IWrapperInfo[] wrappers)
-        {
-            if (wrappers.Length == 0)
-                return string.Empty;
-            var b = new StringBuilder();
-            b.AppendLine($"{title}:");
-            foreach (IWrapperInfo wrapper in wrappers)
+            if (name == null)
             {
-                b.AppendLine("```");
-                b.AppendLine($"{wrapper.Name}: {wrapper.Description}");
-                b.AppendLine(GetFunctionStrings("Actions", wrapper.Actions));
-                b.AppendLine(GetFunctionStrings("Conditionals", wrapper.Conditionals));
-                b.AppendLine(GetFunctionStrings("Properties", wrapper.Properties));
-                b.AppendLine("```");
+                // If no name provided, show all events
+                await ShowAll(Context.ScriptInterface.GetEvents());
+                return;
             }
-            return b.ToString();
+
+            var @event = Context.ScriptInterface.GetEvent(name.ToLower());
+            if (@event != null)
+                await Context.Reply(GetInterfaceString(@event, "Event"));
+            else
+                await Context.Reply("showevent", $"No event found for '{name}'.");
         }
 
-        private string GetFunctionStrings(string title, Dictionary<string, FunctionInfo> dict)
+        [Command("showobj")]
+        public async Task ShowObject(string name = null)
+        {
+            if (name == null)
+            {
+                // If no name provided, show all objects/wrappers
+                await ShowAll(Context.ScriptInterface.GetWrappers());
+                return;
+            }
+
+            var wrapper = Context.ScriptInterface.GetWrapper(name.ToLower());
+            if (wrapper != null)
+                await Context.Reply(GetInterfaceString(wrapper, "Object"));
+            else
+                await Context.Reply("showobj", $"No object found for '{name}'.");
+        }
+
+        private async Task ShowAll(IWrapperInfo[] wrappers)
         {
             var b = new StringBuilder();
-            b.AppendLine($" {title}:");
-            foreach (var keyval in dict)
-            {
-                // Temporary; TODO: Add IWrapperInfo to FunctionInfo to get this info
-                b.AppendLine($" - {keyval.Key}: {keyval.Value}");
-                if (keyval.Value.Params.Length == 0)
-                    continue;
-                b.AppendLine($" Params: ");
-                foreach ((string name, string type) @param in keyval.Value.Params)
-                    b.AppendLine($"  - ${@param.name}: {@param.type}");
-            }
-            return b.ToString();
+            b.AppendLine("```");
+            foreach (IWrapperInfo w in wrappers)
+                b.AppendLine($"{w.Name}: {w.Description}");
+            b.AppendLine("```");
+            await Context.Reply(b.ToString());
         }
     }
 }

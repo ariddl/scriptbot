@@ -22,9 +22,14 @@ namespace DiscordScriptBot.Command
                 ScriptManager = manager;
                 ScriptInterface = @interface;
             }
+
+            public async Task Reply(string cmd, string msg)
+                => await Channel.SendMessageAsync($"`{cmd}: {msg}`");
+            public async Task Reply(string msg)
+                => await Channel.SendMessageAsync(msg);
         }
 
-        private const char PrefixChar = '!'; // Temporary. Should use Slash Commands.
+        private const char PrefixChar = '/'; // Temporary. Should use Slash Commands.
 
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
