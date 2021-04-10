@@ -151,10 +151,7 @@ namespace DiscordScriptBot.Script
         }
 
         private async Task ExecLog(string msg)
-        {
-            if (_config.LogExecution)
-                await AtomicConsole.WriteLine(msg);
-        }
+            => await (_config.LogExecution ? AtomicConsole.WriteLine(msg) : Task.CompletedTask);
 
         public void Stop()
         {

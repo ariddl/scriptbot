@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace DiscordScriptBot.Wrapper
 {
-    [WrapperDecl("textChannel", "A discord message.")]
+    [WrapperDecl("textChannel", "A text channel.")]
     public class TextChannelWrapper : IWrapper
     {
         private ITextChannel _channel;

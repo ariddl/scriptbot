@@ -2,7 +2,7 @@
 using Discord.WebSocket;
 using DiscordScriptBot.Wrapper;
 
-namespace DiscordScriptBot.Event
+namespace DiscordScriptBot.Event.BuiltIn
 {
     [WrapperDecl("message", "Channel message received event")]
     public class MessageEvent : IEvent

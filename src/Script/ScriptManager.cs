@@ -17,7 +17,7 @@ namespace DiscordScriptBot.Script
         {
             string Name { get; }
             string Description { get; }
-            ulong Guild { get; } // TODO
+            ulong Guild { get; }
             string EventTrigger { get; }
             string Author { get; }
             DateTime CreationDate { get; }
