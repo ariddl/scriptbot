@@ -21,6 +21,7 @@ namespace DiscordScriptBot.Script
             string EventTrigger { get; }
             string Author { get; }
             DateTime CreationDate { get; }
+            bool Enabled { get; }
         }
 
         private class ScriptDefinition : IScriptMeta
@@ -32,8 +33,8 @@ namespace DiscordScriptBot.Script
             public string EventTrigger { get; set; }
             public string Author { get; set; }
             public DateTime CreationDate { get; set; }
-
             public bool Enabled { get; set; }
+
             public BlockExpression Tree { get; set; }
         }
 

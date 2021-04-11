@@ -5,7 +5,7 @@ using static DiscordScriptBot.Script.ScriptInterface;
 
 namespace DiscordScriptBot.Command
 {
-    public class ListInterfaceCommand : ModuleBase<CommandManager.CommandContext>
+    public class ListInterfaceCommands : ModuleBase<CommandManager.CommandContext>
     {
         [Command("showevent")]
         public async Task ShowEvent(string name = null)
@@ -19,7 +19,7 @@ namespace DiscordScriptBot.Command
 
             var @event = Context.ScriptInterface.GetEvent(name.ToLower());
             if (@event != null)
-                await Context.Reply(GetInterfaceString(@event, "Event"));
+                await ReplyAsync(GetInterfaceString(@event, "Event"));
             else
                 await Context.Reply("showevent", $"No event found for '{name}'.");
         }
@@ -36,7 +36,7 @@ namespace DiscordScriptBot.Command
 
             var wrapper = Context.ScriptInterface.GetWrapper(name.ToLower());
             if (wrapper != null)
-                await Context.Reply(GetInterfaceString(wrapper, "Object"));
+                await ReplyAsync(GetInterfaceString(wrapper, "Object"));
             else
                 await Context.Reply("showobj", $"No object found for '{name}'.");
         }
@@ -48,7 +48,7 @@ namespace DiscordScriptBot.Command
             foreach (IWrapperInfo w in wrappers)
                 b.AppendLine($"{w.Name}: {w.Description}");
             b.AppendLine("```");
-            await Context.Reply(b.ToString());
+            await ReplyAsync(b.ToString());
         }
     }
 }

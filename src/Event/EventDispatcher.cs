@@ -42,7 +42,8 @@ namespace DiscordScriptBot.Event
         private delegate bool EventFilter(EventDispatcher d, params object[] @params);
         private static readonly Dictionary<EventType, EventFilter> _eventFilters = new Dictionary<EventType, EventFilter>()
         {
-            { EventType.MessageReceived, (d, p) => (p[0] as SocketMessage).Author.Id == d._client.CurrentUser.Id }
+            // TODO: Better system for this.
+            { EventType.MessageReceived, (d, p) => (p[0] is SocketMessage m) && (m.Author.Id == d._client.CurrentUser.Id || m.Content.StartsWith("/")) }
         };
 
         private DiscordSocketClient _client;
@@ -55,6 +56,7 @@ namespace DiscordScriptBot.Event
             _executor = exec;
             _eventSubscriptions = new Dictionary<EventType, List<string>>();
 
+            // TODO: Better system for this.
             _client.UserJoined += async u => await Dispatch(EventType.UserJoined, u);
             _client.UserLeft += async u => await Dispatch(EventType.UserLeft, u);
             _client.UserUpdated += async (a, b) => await Dispatch(EventType.UserUpdated, a, b);

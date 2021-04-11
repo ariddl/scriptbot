@@ -61,11 +61,13 @@ namespace DiscordScriptBot.Script
             return true;
         }
 
-        public void RemoveScript(string name)
+        public void RemoveScript(string name) => Task.Run(async () =>
         {
+            await _semaphore.WaitAsync();
             if (_scriptPool.ContainsKey(name))
                 _scriptPool.Remove(name);
-        }
+            _semaphore.Release();
+        });
 
         private CompiledScript CompileScript(IExpression tree, IScriptMeta meta)
         {
@@ -107,13 +109,13 @@ namespace DiscordScriptBot.Script
                 (string script, object[] @params) item;
                 while (_execQueue.TryDequeue(out item))
                 {
-                    var compiled = await TryGetCompiledScript(item.script);
+                    var (compiled, valid) = await TryGetCompiledScript(item.script);
                     if (compiled != null)
                     {
                         await RunScript(compiled, item.@params);
                         await ReturnCompiledScript(item.script, compiled);
                     }
-                    else
+                    else if (valid)
                         pending.Enqueue(item);
                 }
                 while (pending.TryDequeue(out item))
@@ -133,14 +135,15 @@ namespace DiscordScriptBot.Script
             await ExecLog($"Finished script: {script.Meta.Name}");
         }
 
-        private async Task<CompiledScript> TryGetCompiledScript(string name)
+        private async Task<(CompiledScript, bool)> TryGetCompiledScript(string name)
         {
             CompiledScript result = null;
+            bool valid;
             await _semaphore.WaitAsync();
-            if (_scriptPool.ContainsKey(name) && _scriptPool[name].Count > 0)
+            if ((valid = _scriptPool.ContainsKey(name)) && _scriptPool[name].Count > 0)
                 result = _scriptPool[name].Dequeue();
             _semaphore.Release();
-            return result;
+            return (result, valid);
         }
 
         private async Task ReturnCompiledScript(string name, CompiledScript script)

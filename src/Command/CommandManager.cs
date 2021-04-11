@@ -25,8 +25,6 @@ namespace DiscordScriptBot.Command
 
             public async Task Reply(string cmd, string msg)
                 => await Channel.SendMessageAsync($"`{cmd}: {msg}`");
-            public async Task Reply(string msg)
-                => await Channel.SendMessageAsync(msg);
         }
 
         private const char PrefixChar = '/'; // Temporary. Should use Slash Commands.
