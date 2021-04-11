@@ -14,12 +14,12 @@ tree: !!block
       refType: param
       value: message
     funcName: text.upper
-    parameters:
+    parameters: 
   - !!call
     className: textChannel
     ref: !!ref
-      refType: str
-      value: general
+      refType: param
+      value: textChannel
     funcName: sendText
     parameters:
     - !!call

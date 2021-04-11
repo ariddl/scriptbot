@@ -8,9 +8,9 @@ namespace DiscordScriptBot.Wrapper
     [WrapperDecl("textChannel", "A text channel.")]
     public class TextChannelWrapper : IWrapper
     {
-        private ITextChannel _channel;
+        private IMessageChannel _channel;
 
-        public void Init(object context) => _channel = (ITextChannel)context;
+        public void Init(object context) => _channel = (IMessageChannel)context;
 
         public bool InitRef(BuildContext context, CallExpression.ClassRef @ref)
         {
