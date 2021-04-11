@@ -31,13 +31,14 @@ namespace DiscordScriptBot.Builder
         public string Description { get; set; }
 
         private Stack<IExpression> _exprStack;
-        private List<IExpression> _exprParam;
 
         public ExpressionBuilder()
         {
             _exprStack = new Stack<IExpression>();
-            _exprParam = new List<IExpression>();
         }
+
+        public void If() => Push<IfExpression>(); 
+        public void Else() => Peek<IfExpression>().IfFalse = Push<BlockExpression>();
 
         public void Call(string @class, string func, string refType, string @ref, params IExpression[] @params)
             => AppendExpr(new CallExpression
@@ -48,15 +49,11 @@ namespace DiscordScriptBot.Builder
                 Parameters = @params
             });
 
-        public void If() => Push<IfExpression>();
-
-        public void Else()
+        private T Push<T>() where T : IExpression, new()
         {
-        }
-
-        private void Push<T>() where T : IExpression, new()
-        {
-            _exprStack.Push(new T());
+            T t = new T();
+            _exprStack.Push(t);
+            return t;
         }
 
         private T Peek<T>() where T : IExpression
