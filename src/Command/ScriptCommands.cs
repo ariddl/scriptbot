@@ -9,8 +9,10 @@ namespace DiscordScriptBot.Command
         [Command("showscript")]
         public async Task ShowScript(string name = null)
         {
+            // Name is optional.
             if (name == null)
             {
+                // Not looking for a specific script; list them all.
                 var b = new StringBuilder("```");
                 foreach (var script in Context.ScriptManager.GetScripts(false))
                     b.AppendLine($"{script.Name}: {script.Description} [{(script.Enabled ? "ENABLED" : "DISABLED")}]");
@@ -18,10 +20,14 @@ namespace DiscordScriptBot.Command
                 await ReplyAsync(b.ToString());
                 return;
             }
+
+            // Looking for a specific script.
             {
+                // Try to find the script with the name given.
                 var script = Context.ScriptManager.GetScript(name.ToLower());
                 if (script != null)
                 {
+                    // Reply with the script's meta data.
                     await ReplyAsync($"`{script.Name}: {script.Description}` ```" +
                                      $"Guild/server: {script.Guild}\n" +
                                      $"EventTrigger: {script.EventTrigger}\n" +
@@ -37,6 +43,7 @@ namespace DiscordScriptBot.Command
         [Command("enablescript")]
         public async Task EnableScript(string name)
         {
+            // Attempt to enable the script with the name provided.
             bool ok = Context.ScriptManager.SetScriptEnabled(name.ToLower(), true, true);
             await Context.Reply("enablescript",
                 ok ? $"'{name}' has been enabled." : $"'{name}' could not be enabled.");
@@ -45,6 +52,7 @@ namespace DiscordScriptBot.Command
         [Command("disablescript")]
         public async Task DisableScript(string name)
         {
+            // Attempt to disable the script with the name provided.
             bool ok = Context.ScriptManager.SetScriptEnabled(name.ToLower(), false, true);
             await Context.Reply("disablescript",
                 ok ? $"'{name}' has been disabled." : $"'{name}' could not be disabled.");

@@ -10,6 +10,9 @@ namespace DiscordScriptBot.Command
 {
     public class CommandManager
     {
+        // We use a custom command context so that we can quickly access our
+        // managers without the need of a singleton. This also gives us the
+        // opportunity to introduce utility functions (such as Reply() below).
         public class CommandContext : SocketCommandContext
         {
             public ScriptManager ScriptManager { get; }
@@ -27,7 +30,7 @@ namespace DiscordScriptBot.Command
                 => await Channel.SendMessageAsync($"`{cmd}: {msg}`");
         }
 
-        private const char PrefixChar = '/'; // Temporary. Should use Slash Commands.
+        private const char PrefixChar = '/';
 
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
@@ -36,6 +39,7 @@ namespace DiscordScriptBot.Command
 
         public CommandManager(DiscordSocketClient client, ScriptManager manager, ScriptInterface @interface)
         {
+            // Setup command service.
             _client = client;
             _commands = new CommandService(new CommandServiceConfig
             {
@@ -45,6 +49,7 @@ namespace DiscordScriptBot.Command
             _scriptManager = manager;
             _scriptInterface = @interface;
 
+            // Subscrive events.
             _client.MessageReceived += MessageReceived;
             _commands.CommandExecuted += CommandExecuted;
         }

@@ -12,6 +12,7 @@ namespace DiscordScriptBot.Script
 {
     public class ScriptInterface
     {
+        // Callable function info for the scripting interface.
         public sealed class FunctionInfo
         {
             public MethodInfo Info { get; set; }
@@ -19,6 +20,7 @@ namespace DiscordScriptBot.Script
             public WrapperDecl Attribute { get; set; }
         }
 
+        // Readonly interface of information about a Discord wrapper.
         public interface IWrapperInfo
         {
             string Name { get; }
@@ -29,6 +31,7 @@ namespace DiscordScriptBot.Script
             Dictionary<string, FunctionInfo> Properties { get; }
         }
 
+        // Internal mutable class representing a Discord wrapper.
         private sealed class WrapperInfo : IWrapperInfo
         {
             public string Name { get; set; }
@@ -49,24 +52,31 @@ namespace DiscordScriptBot.Script
             _events = new Dictionary<string, WrapperInfo>();
             _wrapperTypes = new Dictionary<Type, WrapperInfo>();
 
+            // Iterate over all of our loaded assemblies to find event/wrapper types.
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
+                // Iterate over all the types in the current assembly.
                 foreach (Type type in assembly.GetTypes())
                 {
+                    // Event/wrapper types must be marked by Wrapper attributes.
                     WrapperDecl wrapAttr;
                     if ((wrapAttr = type.GetCustomAttribute<WrapperDecl>()) == null)
                         continue;
 
+                    // Check if the type implements either the IWrapper or IEvent interfaces (required).
                     var interfaces = type.GetInterfaces();
                     if (!interfaces.Contains(typeof(IWrapper)) && !interfaces.Contains(typeof(IEvent)))
                         continue;
 
+                    // Events are marked by their implementation of IEvent. Choose the appropriate
+                    // dictionary depending on if this is a wrapper or event type.
                     bool isEvent = interfaces.Contains(typeof(IEvent));
                     var wrapDict = !isEvent ? _wrappers : _events;
                     Debug.Assert(!wrapDict.ContainsKey(wrapAttr.Name),
                         $"Duplicate Wrapper Type: {type.Name} Name: {wrapAttr.Name}");
 
-                    var wrapper = new WrapperInfo()
+                    // Initialize the wrapper info to hold information about the APIs exposed by this type.
+                    var wrapper = new WrapperInfo
                     {
                         Name = wrapAttr.Name,
                         Description = wrapAttr.Description,
@@ -78,8 +88,10 @@ namespace DiscordScriptBot.Script
                     wrapDict.Add(wrapAttr.Name, wrapper);
                     _wrapperTypes.Add(type, wrapper);
 
+                    // Iterate over the members of the type to find the API functions exposed by this type.
                     foreach (MemberInfo m in type.GetMembers())
                     {
+                        // Each API member must be marked by a WrapperDecl, similar to the type itself.
                         WrapperDecl memberAttr;
                         if ((memberAttr = m.GetCustomAttribute<WrapperDecl>()) == null)
                             continue;
@@ -101,6 +113,7 @@ namespace DiscordScriptBot.Script
                         Debug.Assert(!dict.ContainsKey(memberAttr.Name),
                             $"Duplicate interface member: {memberAttr.Name}");
 
+                        // Build the function info and function parameter dictionary.
                         var parameters = new List<(string, string)>();
                         foreach (ParameterInfo parameter in method.GetParameters())
                             parameters.Add((parameter.Name, parameter.ParameterType.Name));

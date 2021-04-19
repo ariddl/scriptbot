@@ -22,6 +22,9 @@ namespace DiscordScriptBot.Event
             _event = new T();
             _eventParams = new Dictionary<string, Func<object>>();
 
+            // Event parameters are accessed through lambdas just like everything else.
+            // Lambdas are compield with the reference to the event we just instantiated
+            // (_event), and thus will only work with that specific event instance.
             foreach (MethodInfo func in typeof(T).GetMethods())
             {
                 WrapperDecl attr;
@@ -32,8 +35,10 @@ namespace DiscordScriptBot.Event
             }
         }
 
+        // Events are initialized with parameters provided by the EventDispatcher.
         public void Init(params object[] @params) => _event.Init(@params);
 
+        // To retrieve parameters we must call the lambda we compiled above.
         public object GetParam(string name)
             => _eventParams.ContainsKey(name) ? _eventParams[name]() : null;
     }

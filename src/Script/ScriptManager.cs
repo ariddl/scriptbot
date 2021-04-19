@@ -13,6 +13,7 @@ namespace DiscordScriptBot.Script
 {
     public class ScriptManager
     {
+        // Readonly interface representing script metadata.
         public interface IScriptMeta
         {
             string Name { get; }
@@ -24,6 +25,7 @@ namespace DiscordScriptBot.Script
             bool Enabled { get; }
         }
 
+        // Internal mutable class representing a script type.
         private class ScriptDefinition : IScriptMeta
         {
             // Metadata
@@ -53,28 +55,34 @@ namespace DiscordScriptBot.Script
                                                             { "ref", typeof(CallExpression.ClassRef) } };
             _scriptDefs = new Dictionary<string, ScriptDefinition>();
 
+            // Find the types representing serializable expressions (our custom Expression types).
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 foreach (Type type in assembly.GetTypes())
                 {
+                    // Type must implement IExpression.
                     if (!type.GetInterfaces().Contains(typeof(IExpression)))
                         continue;
 
-                    // Get the tag key from this type in camel case
+                    // Get the tag key from this type in camel case. Tags are required for YAML.
                     IExpression expr = (IExpression)Activator.CreateInstance(type);
                     string tagKey = expr.Type.ToString();
                     tagKey = char.ToLowerInvariant(tagKey[0]) + tagKey.Substring(1);
 
+                    // Add the tag mapping for the YAML serializer for roundtrip serialization.
                     Debug.Assert(!_tagMappings.ContainsKey(tagKey));
                     _tagMappings.Add(tagKey, type);
                 }
             }
 
+            // Check if we have a scripts directory to load serialized scripts
             if (Directory.Exists(config.ScriptsDir))
             {
+                // Prepare a deserializer and iterate over the script files
                 var deserializer = GetSerializerBuilder<DeserializerBuilder>().Build();
                 foreach (string file in Directory.GetFiles(config.ScriptsDir))
                 {
+                    // Attempt to load and deserialize the script file.
                     ScriptDefinition script;
                     try
                     {
@@ -89,6 +97,7 @@ namespace DiscordScriptBot.Script
                         continue;
                     }
 
+                    // Add the deserialized script.
                     Console.WriteLine($"Loaded script: {script.Name}");
                     AddScript(script);
                 }
@@ -97,6 +106,7 @@ namespace DiscordScriptBot.Script
 
         public void AddScript(string name, string description, string author, BlockExpression tree)
         {
+            // We're adding a script that was just created; create its initial definition.
             var definition = new ScriptDefinition
             {
                 Name = name,
@@ -106,12 +116,15 @@ namespace DiscordScriptBot.Script
                 Enabled = true,
                 Tree = tree
             };
+
+            // Add and save the script.
             AddScript(definition);
             SaveScript(definition.Name);
         }
 
         private void AddScript(ScriptDefinition script)
         {
+            // Ignore scripts with the same name.
             if (_scriptDefs.ContainsKey(script.Name))
             {
                 Console.WriteLine($"Ignoring script with duplicate name: {script.Name}");
@@ -126,6 +139,8 @@ namespace DiscordScriptBot.Script
                 return;
             }
 
+            // The script is enabled, but we must temporarily mark the script disabled
+            // to enable it with SetScriptEnabled (kind of ugly).
             script.Enabled = false;
             if (!SetScriptEnabled(script.Name, true, false))
                 _scriptDefs.Remove(script.Name);
@@ -133,6 +148,7 @@ namespace DiscordScriptBot.Script
 
         public bool SetScriptEnabled(string name, bool enabled, bool save = false)
         {
+            // Make sure the script exists and its state doesn't match the one we want.
             if (!_scriptDefs.ContainsKey(name) || _scriptDefs[name].Enabled == enabled)
                 return false;
 
@@ -162,6 +178,7 @@ namespace DiscordScriptBot.Script
                 _executor.RemoveScript(script.Name);
             }
 
+            // Update the script's enabled flag and re-save it.
             script.Enabled = enabled;
             if (save)
                 SaveScript(name);
@@ -170,9 +187,11 @@ namespace DiscordScriptBot.Script
 
         public void RemoveScript(string name)
         {
+            // Check if the script exists.
             if (!_scriptDefs.ContainsKey(name))
                 return;
 
+            // Disable the script, delete the file, and remove the definition.
             SetScriptEnabled(name, false, false);
             new FileInfo(GetScriptFile(_scriptDefs[name])).Delete();
             _scriptDefs.Remove(name);
@@ -180,27 +199,36 @@ namespace DiscordScriptBot.Script
 
         public void SaveScript(string name)
         {
+            // Check if the script exists.
             if (!_scriptDefs.ContainsKey(name))
                 return;
             
+            // Get the script's definition and prepare a serializer.
             var definition = _scriptDefs[name];
             var serializer = GetSerializerBuilder<SerializerBuilder>().Build();
 
+            // Create the scripts directory to hold our scripts if it doesn't exist.
             if (!Directory.Exists(_config.ScriptsDir))
                 Directory.CreateDirectory(_config.ScriptsDir);
+
+            // Serialize the script definition and write it to a file.
             File.WriteAllText(GetScriptFile(definition), serializer.Serialize(definition));
         }
 
+        // Get a list of all known scripts.
         public IScriptMeta[] GetScripts(bool enabledOnly)
             => _scriptDefs.Values.Where(d => enabledOnly ? d.Enabled : true).ToArray();
 
+        // Get the script with the specified name if it exists, otherwise null.
         public IScriptMeta GetScript(string name)
             => _scriptDefs.ContainsKey(name) ? _scriptDefs[name] : null;
 
+        // Return the file path for the script specified.
         private string GetScriptFile(ScriptDefinition d) => $"{_config.ScriptsDir}/{d.Name}.yml";
 
         private T GetSerializerBuilder<T>() where T : BuilderSkeleton<T>, new()
         {
+            // Create a YAML serializer builder.
             T builder = new T()
                 .WithNamingConvention(CamelCaseNamingConvention.Instance);
 
@@ -209,6 +237,8 @@ namespace DiscordScriptBot.Script
             if (builder is SerializerBuilder serializer)
                 serializer.EnsureRoundtrip();
 
+            // Define our tag mappings for the YAML serializer to know the exact
+            // type of our IExpressions for deserialization.
             foreach (var tag in _tagMappings)
                 builder.WithTagMapping($"tag:yaml.org,2002:{tag.Key}", tag.Value);
             return builder;

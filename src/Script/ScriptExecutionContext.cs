@@ -23,6 +23,11 @@ namespace DiscordScriptBot.Script
 
         public async Task AwaitCompletion()
         {
+            // Scripts may or may not call actions that return Tasks. These
+            // actions are likely Discord.net calls (like Kick), which require
+            // async-awaits. We ensure these are ran in-order by queuing them
+            // up here by wrapping their calls with lambdas to call EnqueueTask
+            // instead of calling them directly (see CallExpression).
             while (_taskQueue.Count > 0)
                 await _taskQueue.Dequeue()();
         }
