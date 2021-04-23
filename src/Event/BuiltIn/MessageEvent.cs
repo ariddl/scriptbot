@@ -4,7 +4,7 @@ using DiscordScriptBot.Wrapper;
 
 namespace DiscordScriptBot.Event.BuiltIn
 {
-    [WrapperDecl("message", "Channel message received event")]
+    [WrapperDecl("messageReceived", "Channel message received event")]
     public class MessageEvent : IEvent
     {
         public IGuildUser User { get; private set; }
@@ -13,6 +13,8 @@ namespace DiscordScriptBot.Event.BuiltIn
 
         private MessageWrapper _msg = new MessageWrapper();
         private TextChannelWrapper _channel = new TextChannelWrapper();
+
+        public bool Filter(SocketMessage m) => false; // TODO
 
         public void Init(params object[] @params)
         {
@@ -25,7 +27,7 @@ namespace DiscordScriptBot.Event.BuiltIn
             _channel.Init(Channel); // temporary until auto-initializers are in
         }
 
-        [WrapperDecl("message", "The message received.", Target="Msg")]
+        [WrapperDecl("message", "The message received.")]
         public MessageWrapper Message() => _msg;
 
         [WrapperDecl("textChannel", "The channel that this message was sent in.")]
