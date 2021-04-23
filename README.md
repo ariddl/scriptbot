@@ -1,5 +1,7 @@
 # scriptbot
-Discord Script Bot
+Discord Script Bot - An [RCOS](https://rcos.io/) project.
+
+A scriptable Discord bot fully controlled by you!
 
 # Class overview
 
