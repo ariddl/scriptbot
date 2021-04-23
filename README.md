@@ -1,4 +1,6 @@
-# ScriptBot - a Discord bot fully controlled by you!
+# ScriptBot
+## A Discord bot fully controlled by you!
+
 An [RCOS](https://rcos.io/) project.
 
 License: MIT
