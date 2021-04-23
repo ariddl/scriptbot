@@ -8,6 +8,6 @@ namespace DiscordScriptBot.Builder
         public string Value { get; set; }
 
         public Expression Build(BuildContext context)
-            => int.TryParse(Value, out int i) ? Expression.Constant(i) : Expression.Constant(Value);
+            => ulong.TryParse(Value, out ulong i) ? Expression.Constant(i) : Expression.Constant(Value);
     }
 }

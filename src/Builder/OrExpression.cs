@@ -2,7 +2,7 @@
 
 namespace DiscordScriptBot.Builder
 {
-    public class OrExpression : IExpression
+    public class OrExpression : IBinaryExpression
     {
         public ExprType Type => ExprType.OrElse;
         public IExpression Left { get; set; }

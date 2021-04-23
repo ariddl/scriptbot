@@ -2,7 +2,7 @@
 
 namespace DiscordScriptBot.Builder
 {
-    public class AndExpression : IExpression
+    public class AndExpression : IBinaryExpression
     {
         public ExprType Type => ExprType.AndAlso;
         public IExpression Left { get; set; }

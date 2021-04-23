@@ -17,4 +17,10 @@ namespace DiscordScriptBot.Builder
         ExprType Type { get; }
         Expression Build(BuildContext context);
     }
+
+    public interface IBinaryExpression : IExpression
+    {
+        IExpression Left { get; set; }
+        IExpression Right { get; set; }
+    }
 }
