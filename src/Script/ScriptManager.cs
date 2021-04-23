@@ -55,13 +55,23 @@ namespace DiscordScriptBot.Script
                                                             { "ref", typeof(CallExpression.ClassRef) } };
             _scriptDefs = new Dictionary<string, ScriptDefinition>();
 
+            // Load tag mappings for roundtrip YAML serialization
+            LoadTagMappings();
+
+            // Check if we have a scripts directory to load serialized scripts
+            if (Directory.Exists(config.ScriptsDir))
+                LoadScripts();
+        }
+
+        private void LoadTagMappings()
+        {
             // Find the types representing serializable expressions (our custom Expression types).
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 foreach (Type type in assembly.GetTypes())
                 {
                     // Type must implement IExpression.
-                    if (!type.GetInterfaces().Contains(typeof(IExpression)))
+                    if (!type.GetInterfaces().Contains(typeof(IExpression)) || type.IsInterface)
                         continue;
 
                     // Get the tag key from this type in camel case. Tags are required for YAML.
@@ -74,47 +84,60 @@ namespace DiscordScriptBot.Script
                     _tagMappings.Add(tagKey, type);
                 }
             }
+        }
 
-            // Check if we have a scripts directory to load serialized scripts
-            if (Directory.Exists(config.ScriptsDir))
+        private void LoadScripts()
+        {
+            // Prepare a deserializer and iterate over the script files
+            var deserializer = GetSerializerBuilder<DeserializerBuilder>().Build();
+            foreach (string file in Directory.GetFiles(_config.ScriptsDir))
             {
-                // Prepare a deserializer and iterate over the script files
-                var deserializer = GetSerializerBuilder<DeserializerBuilder>().Build();
-                foreach (string file in Directory.GetFiles(config.ScriptsDir))
+                // Attempt to load and deserialize the script file.
+                ScriptDefinition script;
+                try
                 {
-                    // Attempt to load and deserialize the script file.
-                    ScriptDefinition script;
-                    try
-                    {
-                        string content = File.ReadAllText(file);
-                        script = deserializer.Deserialize<ScriptDefinition>(content);
-                        if (script.EventTrigger.Length == 0)
-                            throw new Exception("Empty event trigger"); // call exception handler below
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"Failed to load script {Path.GetFileName(file)}: {e.Message}");
-                        continue;
-                    }
-
-                    // Add the deserialized script.
-                    Console.WriteLine($"Loaded script: {script.Name}");
-                    AddScript(script);
+                    string content = File.ReadAllText(file);
+                    script = deserializer.Deserialize<ScriptDefinition>(content);
+                    if (script.EventTrigger.Length == 0)
+                        throw new Exception("Empty event trigger"); // call exception handler below
                 }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Failed to load script {Path.GetFileName(file)}: {e.Message}");
+                    continue;
+                }
+
+                // Add the deserialized script.
+                Console.WriteLine($"Loaded script: {script.Name}");
+                AddScript(script);
+
+                // If this script isn't enabled, we're done..
+                if (!script.Enabled)
+                {
+                    Console.WriteLine($"Script disabled: {script.Name}");
+                    continue;
+                }
+
+                if (!ActivateScript(script.Name))
+                    _scriptDefs.Remove(script.Name);
             }
         }
 
-        public void AddScript(string name, string description, string author, BlockExpression tree)
+        public void AddScript(string name, string description,
+                              ulong guild, string author,
+                              string @event, BlockExpression tree)
         {
             // We're adding a script that was just created; create its initial definition.
             var definition = new ScriptDefinition
             {
                 Name = name,
                 Description = description,
+                Guild = guild,
+                EventTrigger = @event,
                 Author = author,
                 CreationDate = DateTime.Now,
                 Enabled = true,
-                Tree = tree
+                Tree = tree,
             };
 
             // Add and save the script.
@@ -131,19 +154,31 @@ namespace DiscordScriptBot.Script
                 return;
             }
             _scriptDefs.Add(script.Name, script);
+        }
 
-            // If this script isn't enabled, we're done..
-            if (!script.Enabled)
+        public bool ActivateScript(string name)
+        {
+            if (!_scriptDefs.ContainsKey(name))
+                return false;
+            var script = _scriptDefs[name];
+
+            // Subscribe the script to its requested event trigger.
+            // If this fails, it means the requested event is invalid/unsupported.
+            if (!_dispatcher.SubscribeScript(script.EventTrigger, script.Name))
             {
-                Console.WriteLine($"Script disabled: {script.Name}");
-                return;
+                Console.WriteLine($"Failed to SubscribeScript on dispatcher: {script.EventTrigger}");
+                return false;
             }
 
-            // The script is enabled, but we must temporarily mark the script disabled
-            // to enable it with SetScriptEnabled (kind of ugly).
-            script.Enabled = false;
-            if (!SetScriptEnabled(script.Name, true, false))
-                _scriptDefs.Remove(script.Name);
+            // Compile the script, and if that succeeds, add the script.
+            // Otherwise revert and remove the script from the dispatcher.
+            if (!_executor.AddScript(script, script.Tree))
+            {
+                _dispatcher.UnsubscribeScript(script.EventTrigger, script.Name);
+                Console.WriteLine($"Failed to AddScript on executor: {script.Name}");
+                return false;
+            }
+            return true;
         }
 
         public bool SetScriptEnabled(string name, bool enabled, bool save = false)
@@ -154,24 +189,7 @@ namespace DiscordScriptBot.Script
 
             var script = _scriptDefs[name];
             if (enabled)
-            {
-                // Subscribe the script to its requested event trigger.
-                // If this fails, it means the requested event is invalid/unsupported.
-                if (!_dispatcher.SubscribeScript(script.EventTrigger, script.Name))
-                {
-                    Console.WriteLine($"Failed to SubscribeScript on dispatcher: {script.EventTrigger}");
-                    return false;
-                }
-
-                // Compile the script, and if that succeeds, add the script.
-                // Otherwise revert and remove the script from the dispatcher.
-                if (!_executor.AddScript(script, script.Tree))
-                {
-                    _dispatcher.UnsubscribeScript(script.EventTrigger, script.Name);
-                    Console.WriteLine($"Failed to AddScript on executor: {script.Name}");
-                    return false;
-                }
-            }
+                ActivateScript(name);
             else
             {
                 _dispatcher.UnsubscribeScript(script.EventTrigger, script.Name);
