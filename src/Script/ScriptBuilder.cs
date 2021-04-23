@@ -7,14 +7,6 @@ namespace DiscordScriptBot.Script
 {
     public class ScriptBuilder
     {
-        private class BuilderException : Exception
-        {
-            public BuilderException(string func, string msg)
-                : base($"ScriptBuilder.{func}(): {msg}")
-            {
-            }
-        }
-
         public struct CallInfo
         {
             public string Ref { get; set; }
@@ -41,11 +33,14 @@ namespace DiscordScriptBot.Script
             Description = description;
             SourceEvent = @event;
             _exprStack = new Stack<IExpression>();
+            
+            // The root node must always be a Block for scripts.
             Push<BlockExpression>();
         }
 
         private T Push<T>() where T : IExpression, new()
         {
+            // Instantiate T and push it to the top of the stack.
             T t = new T();
             _exprStack.Push(t);
             return t;
@@ -53,6 +48,7 @@ namespace DiscordScriptBot.Script
 
         private T Peek<T>() where T : IExpression
         {
+            // Peek the top element while ensuring it is the type we expect
             string typeName = typeof(T).Name;
             Assert(_exprStack.Count > 0, $"Peek<{typeName}>", "stack empty!");
             Assert(_exprStack.Peek() is T, $"Peek<{typeName}>", "not at top of stack!");
@@ -61,23 +57,28 @@ namespace DiscordScriptBot.Script
 
         private T Pop<T>() where T : IExpression
         {
+            // Pop the top element and return it as the type we expect.
             T expr = Peek<T>();
             _exprStack.Pop();
             return expr;
         }
 
+        // Functions to append expressions to the end of the current block
         private void AppendToBlock(IExpression e) => Peek<BlockExpression>().Expressions.Add(e);
         private void AppendToBlock<T>() where T : IExpression, new()
             => Peek<BlockExpression>().Expressions.Add(Push<T>());
 
         public void If(CallInfo info)
         {
+            // Append a new IfExpression to our current block. Set the condition.
             AppendToBlock<IfExpression>();
             Peek<IfExpression>().Test = ResolveCall(info);
         }
 
         public void Else()
         {
+            // If we're calling else, we must be an if-block. Pop it.
+            // Next peek the IfExpression and push a block for the false condition.
             Pop<BlockExpression>();
             Peek<IfExpression>().IfFalse = Push<BlockExpression>();
         }
@@ -94,6 +95,7 @@ namespace DiscordScriptBot.Script
 
         public BlockExpression Finish()
         {
+            // Pop all nodes up to the root node (default block).
             while (_exprStack.Count > 1)
                 _exprStack.Pop();
             return Peek<BlockExpression>();
@@ -114,6 +116,7 @@ namespace DiscordScriptBot.Script
                 refType = ulong.TryParse(info.Ref, out ulong _)
                     ? CallExpression.ClassRef.TypeId : CallExpression.ClassRef.TypeStr;
 
+            // Build the serializable CallExpression from our info
             return new CallExpression
             {
                 ClassName = info.ClassName,
@@ -129,6 +132,9 @@ namespace DiscordScriptBot.Script
         
         private void ChainConditional(IBinaryExpression e, IExpression cond)
         {
+            // Replace the current test expression in our if with our new
+            // binary expression (e) by moving it to the left condition
+            // of our new binary expression, and setting the right to cond.
             var @if = Peek<IfExpression>();
             e.Left = @if.Test;
             e.Right = cond;
@@ -137,8 +143,10 @@ namespace DiscordScriptBot.Script
 
         private static void Assert(bool cond, string func, string msg)
         {
+            // Throw an exception if the condition is not correct. Note that
+            // the command handler will catch the exception and display it.
             if (!cond)
-                throw new BuilderException(func, msg);
+                throw new Exception($"ScriptBuilder.{func}(): {msg}");
         }
     }
 }
