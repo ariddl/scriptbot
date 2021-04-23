@@ -1,0 +1,66 @@
+!!scriptDef
+name: demo2
+description: 
+guild: 815760659174129705
+eventTrigger: messageReceived
+author: 792692908427968554
+creationDate: 2021-04-23T15:56:48.6032876-05:00
+enabled: true
+tree: !!block
+  expressions:
+  - !!call
+    className: message
+    ref: !!ref
+      refType: param
+      value: message
+    funcName: text.lower
+    parameters: &o0 []
+  - !!if
+    test: !!orElse
+      left: !!call
+        className: message
+        ref: !!ref
+          refType: param
+          value: message
+        funcName: text.contains
+        parameters:
+        - !!constant
+          value: hello
+      right: !!call
+        className: message
+        ref: !!ref
+          refType: param
+          value: message
+        funcName: text.contains
+        parameters:
+        - !!constant
+          value: hi
+    ifTrue: !!block
+      expressions:
+      - !!call
+        className: message
+        ref: !!ref
+          refType: param
+          value: message
+        funcName: delete
+        parameters: *o0
+      - !!call
+        className: textChannel
+        ref: !!ref
+          refType: str
+          value: mychannel
+        funcName: sendText
+        parameters:
+        - !!constant
+          value: bad message!
+    ifFalse: !!block
+      expressions:
+      - !!call
+        className: textChannel
+        ref: !!ref
+          refType: id
+          value: 835257569521696829
+        funcName: sendText
+        parameters:
+        - !!constant
+          value: good message!

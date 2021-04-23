@@ -1,0 +1,42 @@
+!!scriptDef
+name: demo1
+description: 
+guild: 815760659174129705
+eventTrigger: messageReceived
+author: 792692908427968554
+creationDate: 2021-04-23T15:50:02.0327809-05:00
+enabled: false
+tree: !!block
+  expressions:
+  - !!if
+    test: !!call
+      className: message
+      ref: !!ref
+        refType: param
+        value: message
+      funcName: text.contains
+      parameters:
+      - !!constant
+        value: Super secret
+    ifTrue: !!block
+      expressions:
+      - !!call
+        className: textChannel
+        ref: !!ref
+          refType: param
+          value: textChannel
+        funcName: sendText
+        parameters:
+        - !!constant
+          value: You found the secret phrase!
+    ifFalse: !!block
+      expressions:
+      - !!call
+        className: textChannel
+        ref: !!ref
+          refType: param
+          value: textChannel
+        funcName: sendText
+        parameters:
+        - !!constant
+          value: Try again.
