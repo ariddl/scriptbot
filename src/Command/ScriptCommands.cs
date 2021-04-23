@@ -45,7 +45,7 @@ namespace DiscordScriptBot.Command
         {
             // Attempt to enable the script with the name provided.
             bool ok = Context.ScriptManager.SetScriptEnabled(name.ToLower(), true, true);
-            await Context.Reply("enablescript",
+            await Context.Reply(nameof(EnableScript),
                 ok ? $"'{name}' has been enabled." : $"'{name}' could not be enabled.");
         }
 
@@ -54,7 +54,7 @@ namespace DiscordScriptBot.Command
         {
             // Attempt to disable the script with the name provided.
             bool ok = Context.ScriptManager.SetScriptEnabled(name.ToLower(), false, true);
-            await Context.Reply("disablescript",
+            await Context.Reply(nameof(DisableScript),
                 ok ? $"'{name}' has been disabled." : $"'{name}' could not be disabled.");
         }
     }

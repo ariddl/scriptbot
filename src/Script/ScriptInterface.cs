@@ -138,7 +138,7 @@ namespace DiscordScriptBot.Script
         public static string GetInterfaceString(IWrapperInfo wrapper, string type)
         {
             var b = new StringBuilder();
-            b.AppendLine($"`{type}({wrapper.Name}): {wrapper.Description}`");
+            b.AppendLine($"`{type}({wrapper.Name})`: {wrapper.Description}");
             b.AppendLine("```");
             AppendFunctions(b, "Actions", wrapper.Actions);
             AppendFunctions(b, "Conditionals", wrapper.Conditionals);
