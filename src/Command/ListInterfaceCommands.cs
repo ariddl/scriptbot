@@ -17,11 +17,11 @@ namespace DiscordScriptBot.Command
                 return;
             }
 
-            var @event = Context.ScriptInterface.GetEvent(name.ToLower());
+            var @event = Context.ScriptInterface.GetEvent(name);
             if (@event != null)
                 await ReplyAsync(GetInterfaceString(@event, "Event"));
             else
-                await Context.Reply("showevent", $"No event found for '{name}'.");
+                await Context.Reply(nameof(ShowEvent), $"No event found for '{name}'.");
         }
 
         [Command("showobj")]
@@ -34,11 +34,11 @@ namespace DiscordScriptBot.Command
                 return;
             }
 
-            var wrapper = Context.ScriptInterface.GetWrapper(name.ToLower());
+            var wrapper = Context.ScriptInterface.GetWrapper(name);
             if (wrapper != null)
                 await ReplyAsync(GetInterfaceString(wrapper, "Object"));
             else
-                await Context.Reply("showobj", $"No object found for '{name}'.");
+                await Context.Reply(nameof(ShowObject), $"No object found for '{name}'.");
         }
 
         private async Task ShowAll(IWrapperInfo[] wrappers)
