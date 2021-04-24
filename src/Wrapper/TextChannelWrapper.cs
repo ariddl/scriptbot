@@ -32,6 +32,9 @@ namespace DiscordScriptBot.Wrapper
         [WrapperDecl("id", "The channel id.")]
         public ulong Id() => _channel.Id;
 
+        [WrapperDecl("name", "The channel name.")] // TODO StringWrapper
+        public string Name() => _channel.Name;
+
         [WrapperDecl("sendText", "Send a text message to this channel.")]
         public async Task SendText(string text) => await _channel.SendMessageAsync(text);
 

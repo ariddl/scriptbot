@@ -101,7 +101,7 @@ namespace DiscordScriptBot.Script
             return Peek<BlockExpression>();
         }
 
-        private CallExpression ResolveCall(CallInfo info)
+        public CallExpression ResolveCall(CallInfo info)
         {
             string refType = CallExpression.ClassRef.TypeParam;
             if (info.ClassName == null)

@@ -2,6 +2,7 @@
 using DiscordScriptBot.Builder;
 using DiscordScriptBot.Script;
 using DiscordScriptBot.Utility;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -149,7 +150,7 @@ namespace DiscordScriptBot.Command
             var actualParams = new List<IExpression>();
             int offset = CheckThen(@params, false) ? 1 : 0;
             for (int i = 0; i < @params.Length - offset; i++)
-                actualParams.Add(new ConstantExpression { Value = @params[i] });
+                actualParams.Add(ResolveParam(@params[i]));
 
             return new ScriptBuilder.CallInfo
             {
@@ -159,6 +160,19 @@ namespace DiscordScriptBot.Command
                 FuncName = func,
                 FuncParams = actualParams.ToArray()
             };
+        }
+
+        private IExpression ResolveParam(string param)
+        {
+            var call = Tokenize(param, "{", "}");
+            if (call.Length == 0)
+                return new ConstantExpression { Value = param };
+
+            // Note that these function calls should never have any params since
+            // they are likely to just be properties anyway.
+            var arg = call[0].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var info = ResolveCall(arg[0], arg[1]);
+            return _currentScript.ResolveCall(info);
         }
     }
 }
