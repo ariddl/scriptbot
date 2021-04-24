@@ -12,6 +12,7 @@ namespace DiscordScriptBot.Command
     {
         private static ScriptBuilder _currentScript;
 
+        [RequireOwner]
         [Command("newscript")]
         public async Task NewScript(string name, string eventTrigger)
         {
@@ -26,6 +27,7 @@ namespace DiscordScriptBot.Command
             await ReplyAsync($"Now building script: `{name}`, on event: `{eventTrigger}`.");
         }
 
+        [RequireOwner]
         [Command("if")]
         public async Task If(string @class, string func, params string[] @params)
         {
@@ -35,6 +37,7 @@ namespace DiscordScriptBot.Command
             CheckThen(@params, true);
         }
 
+        [RequireOwner]
         [Command("and")]
         public async Task And(string @class, string func, params string[] @params)
         {
@@ -44,6 +47,7 @@ namespace DiscordScriptBot.Command
             CheckThen(@params, true);
         }
 
+        [RequireOwner]
         [Command("or")]
         public async Task Or(string @class, string func, params string[] @params)
         {
@@ -53,6 +57,7 @@ namespace DiscordScriptBot.Command
             CheckThen(@params, true);
         }
 
+        [RequireOwner]
         [Command("then")]
         public async Task Then()
         {
@@ -60,6 +65,7 @@ namespace DiscordScriptBot.Command
                 _currentScript.Then();
         }
 
+        [RequireOwner]
         [Command("else")]
         public async Task Else()
         {
@@ -67,6 +73,7 @@ namespace DiscordScriptBot.Command
                 _currentScript.Else();
         }
 
+        [RequireOwner]
         [Command("elif")]
         public async Task ElseIf(string @class, string func, params string[] @params)
         {
@@ -76,6 +83,7 @@ namespace DiscordScriptBot.Command
             await If(@class, func, @params);
         }
 
+        [RequireOwner]
         [Command("end")]
         public async Task End()
         {
@@ -83,6 +91,7 @@ namespace DiscordScriptBot.Command
                 _currentScript.End();
         }
 
+        [RequireOwner]
         [Command("action")]
         public async Task Action(string @class, string func, params string[] @params)
         {
@@ -90,6 +99,7 @@ namespace DiscordScriptBot.Command
                 _currentScript.Action(ResolveCall(@class, func, @params));
         }
 
+        [RequireOwner]
         [Command("done")]
         public async Task Done(string option = null)
         {

@@ -7,6 +7,7 @@ namespace DiscordScriptBot.Command
 {
     public class ListInterfaceCommands : ModuleBase<CommandManager.CommandContext>
     {
+        [RequireOwner]
         [Command("showevent")]
         public async Task ShowEvent(string name = null)
         {
@@ -24,6 +25,7 @@ namespace DiscordScriptBot.Command
                 await Context.Reply(nameof(ShowEvent), $"No event found for '{name}'.");
         }
 
+        [RequireOwner]
         [Command("showobj")]
         public async Task ShowObject(string name = null)
         {

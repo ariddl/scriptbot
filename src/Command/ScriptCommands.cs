@@ -6,6 +6,7 @@ namespace DiscordScriptBot.Command
 {
     public class ScriptCommands : ModuleBase<CommandManager.CommandContext>
     {
+        [RequireOwner]
         [Command("showscript")]
         public async Task ShowScript(string name = null)
         {
@@ -40,6 +41,7 @@ namespace DiscordScriptBot.Command
             }
         }
 
+        [RequireOwner]
         [Command("enablescript")]
         public async Task EnableScript(string name)
         {
@@ -49,6 +51,7 @@ namespace DiscordScriptBot.Command
                 ok ? $"'{name}' has been enabled." : $"'{name}' could not be enabled.");
         }
 
+        [RequireOwner]
         [Command("disablescript")]
         public async Task DisableScript(string name)
         {
