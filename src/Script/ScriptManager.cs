@@ -136,7 +136,7 @@ namespace DiscordScriptBot.Script
                 EventTrigger = @event,
                 Author = author,
                 CreationDate = DateTime.Now,
-                Enabled = true,
+                Enabled = false,
                 Tree = tree,
             };
 
@@ -161,6 +161,7 @@ namespace DiscordScriptBot.Script
             if (!_scriptDefs.ContainsKey(name))
                 return false;
             var script = _scriptDefs[name];
+            script.Enabled = true;
 
             // Subscribe the script to its requested event trigger.
             // If this fails, it means the requested event is invalid/unsupported.
