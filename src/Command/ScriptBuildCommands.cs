@@ -47,6 +47,17 @@ namespace DiscordScriptBot.Command
                 await ReplyAsync($"Script '{currentScript.Name}' created.");
                 Context.RemoveContext<ScriptBuilder>();
             }
+
+            [RequireOwner]
+            [Command("cancel")]
+            public async Task Cancel()
+            {
+                var currentScript = Context.GetContext<ScriptBuilder>();
+                if (currentScript == null)
+                    return;
+                Context.RemoveContext<ScriptBuilder>();
+                await ReplyAsync($"Script building for `{currentScript.Name}` has been canceled!");
+            }
         }
 
         [RequireOwner]
