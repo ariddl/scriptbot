@@ -26,6 +26,27 @@ namespace DiscordScriptBot.Command
                 Context.SetContext(new ScriptBuilder(name, null, @event));
                 await ReplyAsync($"Now building script: `{name}`, on event: `{eventTrigger}`.");
             }
+
+            [RequireOwner]
+            [Command("done")]
+            public async Task Done(string option = null)
+            {
+                var currentScript = Context.GetContext<ScriptBuilder>();
+                if (currentScript == null)
+                    return;
+                Context.ScriptManager.AddScript(currentScript.Name,
+                                                currentScript.Description,
+                                                Context.Guild.Id,
+                                                Context.User.Id.ToString(),
+                                                currentScript.SourceEvent.Name,
+                                                currentScript.Finish());
+
+                if (option != null && option.ToLower() == "enable")
+                    Context.ScriptManager.ActivateScript(currentScript.Name);
+
+                await ReplyAsync($"Script '{currentScript.Name}' created.");
+                Context.RemoveContext<ScriptBuilder>();
+            }
         }
 
         [RequireOwner]
@@ -99,27 +120,6 @@ namespace DiscordScriptBot.Command
         {
             if (await CheckScriptInProgress())
                 Context.GetContext<ScriptBuilder>().Action(ResolveCall(@class, func, @params));
-        }
-
-        [RequireOwner]
-        [Command("done")]
-        public async Task Done(string option = null)
-        {
-            if (!await CheckScriptInProgress())
-                return;
-            var currentScript = Context.GetContext<ScriptBuilder>();
-            Context.ScriptManager.AddScript(currentScript.Name,
-                                            currentScript.Description,
-                                            Context.Guild.Id,
-                                            Context.User.Id.ToString(),
-                                            currentScript.SourceEvent.Name,
-                                            currentScript.Finish());
-
-            if (option != null && option.ToLower() == "enable")
-                Context.ScriptManager.ActivateScript(currentScript.Name);
-
-            await ReplyAsync($"Script '{currentScript.Name}' created.");
-            Context.RemoveContext<ScriptBuilder>();
         }
 
         private async Task<bool> CheckScriptInProgress()
