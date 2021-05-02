@@ -4,10 +4,11 @@ using System.Threading.Tasks;
 
 namespace DiscordScriptBot.Command
 {
+    [Group("script")]
     public class ScriptCommands : ModuleBase<CommandManager.CommandContext>
     {
         [RequireOwner]
-        [Command("showscript")]
+        [Command("describe")]
         public async Task ShowScript(string name = null)
         {
             // Name is optional.
@@ -42,7 +43,7 @@ namespace DiscordScriptBot.Command
         }
 
         [RequireOwner]
-        [Command("enablescript")]
+        [Command("enable")]
         public async Task EnableScript(string name)
         {
             // Attempt to enable the script with the name provided.
@@ -52,7 +53,7 @@ namespace DiscordScriptBot.Command
         }
 
         [RequireOwner]
-        [Command("disablescript")]
+        [Command("disable")]
         public async Task DisableScript(string name)
         {
             // Attempt to disable the script with the name provided.

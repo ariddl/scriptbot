@@ -1,7 +1,6 @@
 ﻿using Discord.Commands;
 using DiscordScriptBot.Builder;
 using DiscordScriptBot.Script;
-using DiscordScriptBot.Utility;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -12,19 +11,23 @@ namespace DiscordScriptBot.Command
     {
         private static ScriptBuilder _currentScript;
 
-        [RequireOwner]
-        [Command("newscript")]
-        public async Task NewScript(string name, string eventTrigger)
+        [Group("scriptbuild")]
+        public class ScriptBuild : ModuleBase<CommandManager.CommandContext>
         {
-            var @event = Context.ScriptInterface.GetEvent(eventTrigger);
-            if (@event == null)
+            [RequireOwner]
+            [Command("new")]
+            public async Task NewScript(string name, string eventTrigger)
             {
-                await Context.Reply(nameof(NewScript), "Invalid event name.");
-                return;
-            }
+                var @event = Context.ScriptInterface.GetEvent(eventTrigger);
+                if (@event == null)
+                {
+                    await Context.Reply(nameof(NewScript), "Invalid event name.");
+                    return;
+                }
 
-            _currentScript = new ScriptBuilder(name, null, @event);
-            await ReplyAsync($"Now building script: `{name}`, on event: `{eventTrigger}`.");
+                _currentScript = new ScriptBuilder(name, null, @event);
+                await ReplyAsync($"Now building script: `{name}`, on event: `{eventTrigger}`.");
+            }
         }
 
         [RequireOwner]
@@ -156,7 +159,6 @@ namespace DiscordScriptBot.Command
             var @ref = Tokenize(@class, "[", "]");
             bool isRef = @ref.Length == 1;
 
-            // TODO: SUPPORT CALLING FUNCTIONS HERE
             var actualParams = new List<IExpression>();
             int offset = CheckThen(@params, false) ? 1 : 0;
             for (int i = 0; i < @params.Length - offset; i++)
@@ -174,7 +176,7 @@ namespace DiscordScriptBot.Command
 
         private IExpression ResolveParam(string param)
         {
-            var call = Tokenize(param, "{", "}");
+            var call = Tokenize(param, "${", "}");
             if (call.Length == 0)
                 return new ConstantExpression { Value = param };
 
