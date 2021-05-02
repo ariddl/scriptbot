@@ -9,8 +9,6 @@ namespace DiscordScriptBot.Command
 {
     public class ScriptBuildCommands : ModuleBase<CommandManager.CommandContext>
     {
-        private static ScriptBuilder _currentScript;
-
         [Group("scriptbuild")]
         public class ScriptBuild : ModuleBase<CommandManager.CommandContext>
         {
@@ -25,7 +23,7 @@ namespace DiscordScriptBot.Command
                     return;
                 }
 
-                _currentScript = new ScriptBuilder(name, null, @event);
+                Context.SetContext(new ScriptBuilder(name, null, @event));
                 await ReplyAsync($"Now building script: `{name}`, on event: `{eventTrigger}`.");
             }
         }
@@ -34,9 +32,10 @@ namespace DiscordScriptBot.Command
         [Command("if")]
         public async Task If(string @class, string func, params string[] @params)
         {
+
             if (!await CheckScriptInProgress())
                 return;
-            _currentScript.If(ResolveCall(@class, func, @params));
+            Context.GetContext<ScriptBuilder>().If(ResolveCall(@class, func, @params));
             CheckThen(@params, true);
         }
 
@@ -46,7 +45,7 @@ namespace DiscordScriptBot.Command
         {
             if (!await CheckScriptInProgress())
                 return;
-            _currentScript.And(ResolveCall(@class, func, @params));
+            Context.GetContext<ScriptBuilder>().And(ResolveCall(@class, func, @params));
             CheckThen(@params, true);
         }
 
@@ -56,7 +55,7 @@ namespace DiscordScriptBot.Command
         {
             if (!await CheckScriptInProgress())
                 return;
-            _currentScript.Or(ResolveCall(@class, func, @params));
+            Context.GetContext<ScriptBuilder>().Or(ResolveCall(@class, func, @params));
             CheckThen(@params, true);
         }
 
@@ -65,7 +64,7 @@ namespace DiscordScriptBot.Command
         public async Task Then()
         {
             if (await CheckScriptInProgress())
-                _currentScript.Then();
+                Context.GetContext<ScriptBuilder>().Then();
         }
 
         [RequireOwner]
@@ -73,7 +72,7 @@ namespace DiscordScriptBot.Command
         public async Task Else()
         {
             if (await CheckScriptInProgress())
-                _currentScript.Else();
+                Context.GetContext<ScriptBuilder>().Else();
         }
 
         [RequireOwner]
@@ -82,7 +81,7 @@ namespace DiscordScriptBot.Command
         {
             if (!await CheckScriptInProgress())
                 return;
-            _currentScript.Else();
+            Context.GetContext<ScriptBuilder>().Else();
             await If(@class, func, @params);
         }
 
@@ -91,7 +90,7 @@ namespace DiscordScriptBot.Command
         public async Task End()
         {
             if (await CheckScriptInProgress())
-                _currentScript.End();
+                Context.GetContext<ScriptBuilder>().End();
         }
 
         [RequireOwner]
@@ -99,7 +98,7 @@ namespace DiscordScriptBot.Command
         public async Task Action(string @class, string func, params string[] @params)
         {
             if (await CheckScriptInProgress())
-                _currentScript.Action(ResolveCall(@class, func, @params));
+                Context.GetContext<ScriptBuilder>().Action(ResolveCall(@class, func, @params));
         }
 
         [RequireOwner]
@@ -108,23 +107,24 @@ namespace DiscordScriptBot.Command
         {
             if (!await CheckScriptInProgress())
                 return;
-            Context.ScriptManager.AddScript(_currentScript.Name,
-                                            _currentScript.Description,
+            var currentScript = Context.GetContext<ScriptBuilder>();
+            Context.ScriptManager.AddScript(currentScript.Name,
+                                            currentScript.Description,
                                             Context.Guild.Id,
                                             Context.User.Id.ToString(),
-                                            _currentScript.SourceEvent.Name,
-                                            _currentScript.Finish());
+                                            currentScript.SourceEvent.Name,
+                                            currentScript.Finish());
 
             if (option != null && option.ToLower() == "enable")
-                Context.ScriptManager.ActivateScript(_currentScript.Name);
+                Context.ScriptManager.ActivateScript(currentScript.Name);
 
-            await ReplyAsync($"Script '{_currentScript.Name}' created.");
-            _currentScript = null;
+            await ReplyAsync($"Script '{currentScript.Name}' created.");
+            Context.RemoveContext<ScriptBuilder>();
         }
 
         private async Task<bool> CheckScriptInProgress()
         {
-            if (_currentScript != null)
+            if (Context.GetContext<ScriptBuilder>() != null)
                 return true;
             await ReplyAsync("No script being built!");
             return false;
@@ -136,7 +136,7 @@ namespace DiscordScriptBot.Command
                 return false;
 
             if (doThen)
-                _currentScript.Then();
+                Context.GetContext<ScriptBuilder>().Then();
             return true;
         }
 
@@ -184,7 +184,7 @@ namespace DiscordScriptBot.Command
             // they are likely to just be properties anyway.
             var arg = call[0].Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var info = ResolveCall(arg[0], arg[1]);
-            return _currentScript.ResolveCall(info);
+            return Context.GetContext<ScriptBuilder>().ResolveCall(info);
         }
     }
 }
