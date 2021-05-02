@@ -14,7 +14,7 @@ namespace DiscordScriptBot.Command
         {
             [RequireOwner]
             [Command("new")]
-            public async Task NewScript(string name, string eventTrigger)
+            public async Task NewScript(string name, string eventTrigger, string description = null)
             {
                 var @event = Context.ScriptInterface.GetEvent(eventTrigger);
                 if (@event == null)
@@ -23,7 +23,7 @@ namespace DiscordScriptBot.Command
                     return;
                 }
 
-                Context.SetContext(new ScriptBuilder(name, null, @event));
+                Context.SetContext(new ScriptBuilder(name, description, @event));
                 await ReplyAsync($"Now building script: `{name}`, on event: `{eventTrigger}`.");
             }
 
